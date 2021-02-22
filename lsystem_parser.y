@@ -15,8 +15,8 @@ extern int yyget_lineno  (void);
 
 %}
 %union {
-	double num;
-	char* str;
+    double num;
+    char* str;
 }
 %parse-param { struct Parser * ptr }
 %token <str> VAR
@@ -72,8 +72,8 @@ expr: AXIOM  TURTLE { parser_set_axiom(ptr, $2); free($2); }
 int yyerror(struct Parser * ptr, const char * s)
 {
     char buf[1024];
-	snprintf(buf, 1024, "syntax error near line %d", yyget_lineno()); 
+    snprintf(buf, 1024, "syntax error near line %d", yyget_lineno()); 
     parser_set_error(ptr, buf);
-	return 0;
+    return 0;
 }
 

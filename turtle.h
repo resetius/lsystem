@@ -5,10 +5,10 @@
  */
 
 struct State {
-	int s;
-	double m;
-	int i;
-	char * str;
+    int s;
+    double m;
+    int i;
+    char * str;
 };
 
 extern struct State st;
