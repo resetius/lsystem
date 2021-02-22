@@ -1,7 +1,19 @@
 # lsystem
-L-System Fractal Generator
+[L-System Fractal Generator](https://en.wikipedia.org/wiki/L-system)
+
+This program was inspired by [FractInt](http://fractint.oblivion.cz) pictures and written by me in 2008. Current version (2021) was rewritten in C language and cleaned up from old/unused/broken code.
+
+# build
+   cmake ${source-dir}
+   make
+   
+# run
+   lsystem -f ${source-dir}/fractals/snoppy.ls
+
+# syntax
 
 # examples
+This examples were generated from rule-files taken from [FractInt](http://fractint.oblivion.cz).
 
 ![img/200x200/No.Touch.Double.png](https://github.com/resetius/lsystem/blob/master/img/200x200/No.Touch.Double.png?raw=true)
 ![img/200x200/Mandelbrot.Set.png](https://github.com/resetius/lsystem/blob/master/img/200x200/Mandelbrot.Set.png?raw=true)
