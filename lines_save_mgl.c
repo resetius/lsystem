@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2008-2021 Alexey Ozeritsky
+/* Copyright (c) 2008-2021 Alexey Ozeritskiy
  * All rights reserved.
  */
 
@@ -26,7 +26,7 @@ void lines_save_mgl(
         fprintf(stderr, "cannot open file '%s'\n", fname);
         return;
     }
-	
+
 	fprintf(f, "axis %lf %lf %lf %lf\n", min_x, min_y, max_x, max_y);
 	for (struct StringListItem* it = group_mgl_start(g); it != NULL; it=it->next)
 	{

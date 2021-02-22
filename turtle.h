@@ -1,6 +1,6 @@
 #pragma once
 
-/* Copyright (c) 2008-2021 Alexey Ozeritsky
+/* Copyright (c) 2008-2021 Alexey Ozeritskiy
  * All rights reserved.
  */
 
