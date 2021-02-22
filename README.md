@@ -5,12 +5,37 @@ This program was inspired by [FractInt](http://fractint.oblivion.cz) pictures an
 
 # build
 ```
-  cmake ${source-dir}
-  make
+$ cmake ${source-dir}
+$ make
 ```   
 # run
 ```
-  lsystem -f ${source-dir}/fractals/snoppy.ls
+$ lsystem -f ${source-dir}/fractals/snoppy.ls
+  ....
+  building Snow.Flake.2
+  using order 4
+  lsystem done
+  turtle done
+  normilize done
+  saving done
+building Snow.Flake.3
+  using order 5
+  lsystem done
+  turtle done
+  normilize done
+  saving done
+building Snow.Flake.4
+  using order 12
+  lsystem done
+  turtle done
+  normilize done
+  saving done
+building Twelve.Stones
+  using order 27
+  lsystem done
+  turtle done
+  normilize done
+  saving done
 ```
 # syntax
 
