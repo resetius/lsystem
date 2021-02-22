@@ -39,7 +39,40 @@ building Twelve.Stones
 ```
 # syntax
 
-# examples
+```
+fractal_name { fractal_description }
+```
+Fractal with name 'fractal_name' will be saved to 'fractal_name.png'.
+
+Fractal description parameters:
+|name|description|
+|____|___________|
+|alpha|initial angle|
+|theta|angle increment in radians|
+|angle|angle increment in degree|
+|axiom|sets axiom|
+|+ or -|increment or decrement angle on theta radians|
+|! | swaps + and -|
+|[ and ] | branch |
+
+# Fractal desctiption examples
+```
+Koch2 { ; Adrian Mariano
+; from The Fractal Geometry of Nature by Mandelbrot
+  Angle 12
+  Axiom F---F---F---F
+  F=-F+++F---F+
+  }
+
+Koch3 { ; Adrian Mariano
+; from The Fractal Geometry of Nature by Mandelbrot
+  Angle 4
+  Axiom F-F-F-F
+  F=F-F+F+FF-F-F+F
+  }
+```
+
+# Pictures examples
 This examples were generated from rule-files taken from [FractInt](http://fractint.oblivion.cz).
 
 ![img/200x200/No.Touch.Double.png](https://github.com/resetius/lsystem/blob/master/img/200x200/No.Touch.Double.png?raw=true)
