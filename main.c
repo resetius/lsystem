@@ -11,15 +11,12 @@
 void usage(const char * n)
 {
     printf("usage:\n");
-//	printf("%s [-f filename] [-t type] [-l order] \n", n);
-    printf("%s [-f filename] [-l order] [-w width] [-h height] \n", n);
+    printf("%s [-f filename] [-t type] [-l order] [-w width] [-h height] \n", n);
     printf("-f -- read lsystem from file (stdin - default)\n");
-#if 0
     printf("-t -- points save type: \n");
     printf("\t\t mgl -- MathGL script\n");
     printf("\t\t png -- PNG\n");
     printf("\t\t txt -- txt\n");
-#endif
     printf("-l -- default order \n");
     exit(0);
 }
