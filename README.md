@@ -47,15 +47,30 @@ Fractal with name 'fractal_name' will be saved to 'fractal_name.png'.
 Fractal description parameters:
 
  | name     | description                                   |
- | -------- | --------------------------------------------- |
- | alpha    | initial angle                                 |
- | theta    | angle increment in radians                    |
- | angle    | angle increment in degree                     |
- | axiom    | sets axiom                                    |
- | + or -   | increment or decrement angle on theta radians |
- | !        | swaps + and -                                 |
- | [ and ]  | branch                                        |
-
+ | ------------- | --------------------------------------------- |
+ | alpha         | initial angle                                 |
+ | theta         | angle increment in radians                    |
+ | angle         | angle increment in degree                     |
+ | axiom         | sets axiom                                    |
+ | + or -        | increment or decrement angle on theta radians |
+ | !             | swaps + and -                                 |
+ | [ and ]       | branch                                        |
+ | F or D        | draw forward                                  |
+ | G or M.       | skip forward                                  |
+ | Cnumber       | sets current color to number                  |
+ | >number       | increases color by number                     |
+ | <number       | decreases color by number                     |
+ | |             | increases angle by 180 degree                 |
+ | \number       | increases angle by number degree              |
+ | /number       | decreases angle by number degree              |
+ | @number       | multiplies step by number                     |
+ | @qnumber      | multiplies step by square root of number      |
+ | @lnumber      | divides step by number                        |
+ | @lqnumber     | divides step by square root of number         |
+ | @qlnumber     | divides step by square root of number         |
+ | ;             | comment                                       |
+ | ;order number | sets order of current fractal to number       |
+ 
 # Fractal description examples
 ```
 Koch2 { ; Adrian Mariano
