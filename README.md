@@ -46,15 +46,15 @@ Fractal with name 'fractal_name' will be saved to 'fractal_name.png'.
 
 Fractal description parameters:
 
-|name    |description                                  |
-|________|_____________________________________________|
-|alpha   |initial angle                                |
-|theta   |angle increment in radians                   |
-|angle   |angle increment in degree                    |
-|axiom   |sets axiom                                   |
-|+ or -  |increment or decrement angle on theta radians|
-|!       | swaps + and -                               |
-|[ and ] | branch                                      |
+ | name     | description                                   |
+ | -------- | --------------------------------------------- |
+ | alpha    | initial angle                                 |
+ | theta    | angle increment in radians                    |
+ | angle    | angle increment in degree                     |
+ | axiom    | sets axiom                                    |
+ | + or -   | increment or decrement angle on theta radians |
+ | !        | swaps + and -                                 |
+ | [ and ]  | branch                                        |
 
 # Fractal description examples
 ```
