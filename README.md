@@ -4,11 +4,13 @@
 This program was inspired by [FractInt](http://fractint.oblivion.cz) pictures and written by me in 2008. Current version (2021) was rewritten in C language and cleaned up from old/unused/broken code.
 
 # build
-   cmake ${source-dir}
-   make
+
+  cmake ${source-dir}
+  make
    
 # run
-   lsystem -f ${source-dir}/fractals/snoppy.ls
+
+  lsystem -f ${source-dir}/fractals/snoppy.ls
 
 # syntax
 
