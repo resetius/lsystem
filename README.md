@@ -1,7 +1,7 @@
 # lsystem
 [L-System Fractal Generator](https://en.wikipedia.org/wiki/L-system)
 
-This program was inspired by [FractInt](http://fractint.oblivion.cz) pictures and written by me in 2008. Current version (2021) was rewritten in C language and cleaned up from old/unused/broken code.
+This program was inspired by [FractInt](http://fractint.oblivion.cz) pictures and written by me in 2008. Current version (2021) was rewritten in C language and stripped of old/unused/broken code.
 
 # build
 ```
