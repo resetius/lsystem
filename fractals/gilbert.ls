@@ -1,0 +1,7 @@
+gilbert {
+axiom X
+F=F
+X=-YF+XFX+FY-
+Y=+XF-YFY-FX+
+theta 1.5707963267948966192313216916398
+}

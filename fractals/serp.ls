@@ -1,0 +1,6 @@
+serp {
+axiom FXF--FF--FF
+F=FF
+X=--FXF++FXF++FXF--
+theta 1.0471975511965977461542144610932
+}

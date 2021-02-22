@@ -1,0 +1,6 @@
+net {
+axiom F+F+F+F
+F=F+B-F-FFF+F+B-F
+B=BBB
+theta 1.5707963267948966192313216916398
+}

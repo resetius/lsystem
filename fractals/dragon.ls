@@ -1,0 +1,7 @@
+dragon {
+axiom FX
+F=F
+X=X+YF+
+Y=-FX-Y
+theta 1.5707963267948966192313216916398
+}
