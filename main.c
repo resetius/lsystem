@@ -85,6 +85,9 @@ int main(int argc, char** argv) {
         //fprintf(stderr, " '%s'\n", W);
         lines = turtle(g, W); 
         free(W);
+        if (lines == NULL) {
+            continue;
+        }
         fprintf(stderr, "  turtle done\n");
         lines_normilize(lines, &min_x, &max_x, &min_y, &max_y);
         fprintf(stderr, "  normilize done\n");

@@ -110,7 +110,9 @@ static void compile(struct App* app) {
             cur = next;
         }
         app->lines = lines;
-        lines_normilize(lines, &app->min_x, &app->max_x, &app->min_y, &app->max_y);
+        if (lines != NULL) {
+            lines_normilize(lines, &app->min_x, &app->max_x, &app->min_y, &app->max_y);
+        }
     } else {
         parser_print_error(p);
     }
