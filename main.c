@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 
     if (f) yyrestart(f);
 
-    while (yyparse(p));
+    while (yyparse(p) && !parser_has_error(p));
 
     if (parser_has_error(p)) {
         parser_print_error(p);

@@ -85,7 +85,7 @@ static void compile(struct App* app) {
     text = gtk_text_buffer_get_text(buffer, &start, &end, TRUE);
 
     YY_BUFFER_STATE state = yy_scan_string(text);
-    while (yyparse(p));
+    while (yyparse(p) && !parser_has_error(p));
     yy_delete_buffer(state);
 
     if (!parser_has_error(p)) {
@@ -111,6 +111,8 @@ static void compile(struct App* app) {
         }
         app->lines = lines;
         lines_normilize(lines, &app->min_x, &app->max_x, &app->min_y, &app->max_y);
+    } else {
+        parser_print_error(p);
     }
 
     free(text);
