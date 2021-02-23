@@ -64,11 +64,11 @@ static gboolean draw_cb(GtkWidget *widget, cairo_t *cr, struct App*  app)
         int y0 = (int)(1 + (it->y0 - min_y) * kk); y0 = h - y0 - 1;
         int x1 = (int)(1 + (it->x1 - min_x) * kk);
         int y1 = (int)(1 + (it->y1 - min_y) * kk); y1 = h - y1 - 1;
-        cairo_set_source_rgb(cr, colormap_vga1[it->c][0], colormap_vga1[it->c][1], colormap_vga1[it->c][2]);
+        cairo_set_source_rgb(cr, colormap_vga1[it->c][0]/256., colormap_vga1[it->c][1]/256., colormap_vga1[it->c][2]/256.);
         cairo_move_to(cr, x0, y0);
         cairo_line_to(cr, x1, y1);
+        cairo_stroke(cr);
     }
-    cairo_stroke(cr);
 
     return TRUE;
 }
