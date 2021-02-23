@@ -84,9 +84,11 @@ static void compile(struct App* app) {
     gtk_text_buffer_get_end_iter(buffer, &end);
     text = gtk_text_buffer_get_text(buffer, &start, &end, TRUE);
 
+    yyset_lineno(1);
     YY_BUFFER_STATE state = yy_scan_string(text);
     while (yyparse(p) && !parser_has_error(p));
     yy_delete_buffer(state);
+    yylex_destroy();
 
     if (!parser_has_error(p)) {
         struct Line* cur = NULL;
@@ -133,6 +135,26 @@ static gboolean key_press_event(GtkWidget* widget, GdkEventKey* event, struct Ap
     return FALSE;
 }
 
+static void
+open_cb (GSimpleAction *simple, GVariant      *parameter, gpointer user_data)
+{
+    fprintf(stderr, "open\n");
+}
+
+static void
+save_cb (GSimpleAction *simple, GVariant      *parameter, gpointer user_data)
+{
+    fprintf(stderr, "save\n");
+}
+
+static void
+run_cb (GSimpleAction *simple, GVariant      *parameter, gpointer user_data)
+{
+    struct App* app = (struct App*)user_data;
+    compile(app);
+    gtk_widget_queue_draw(app->drawing_area);
+}
+
 static void close_window(GtkWidget* widget, struct App* app)
 {   
     if (app->surface)
@@ -143,13 +165,48 @@ static void close_window(GtkWidget* widget, struct App* app)
     gtk_main_quit();
 }
 
+static GtkWidget* create_toolbar(struct App* app) {
+    GtkWidget* toolbar;
+    GtkToolItem* item;
+
+    toolbar = gtk_toolbar_new ();
+
+    item = gtk_tool_button_new(gtk_image_new_from_icon_name("document-open", GTK_ICON_SIZE_SMALL_TOOLBAR), "open");
+    gtk_tool_item_set_tooltip_text(item, "open");
+    gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.open");
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1); 
+
+    item = gtk_tool_button_new(gtk_image_new_from_icon_name("document-save", GTK_ICON_SIZE_SMALL_TOOLBAR), "save");
+    gtk_tool_item_set_tooltip_text(item, "save");
+    gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.save");
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1); 
+
+    item = gtk_separator_tool_item_new();
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
+
+    item = gtk_tool_button_new(gtk_image_new_from_icon_name("media-playback-start", GTK_ICON_SIZE_SMALL_TOOLBAR), "run");
+    gtk_tool_item_set_tooltip_text(item, "run");
+    gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.run");
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1); 
+
+    return toolbar;
+}
+
 int main(int argc, char** argv) {
     struct App app;
     GtkWidget* window;
-    GtkWidget* box;
+    GtkWidget* box; // drawing_area and text
+    GtkWidget* main_box; // toolbar and other
     GtkWidget* drawing_area;
     GtkWidget* text_view;
     GtkTextBuffer *buffer;
+    GActionEntry action_entries[] =
+    {
+        {"open", open_cb, NULL, NULL, NULL},
+        {"save", save_cb, NULL, NULL, NULL},
+        {"run", run_cb, NULL, NULL, NULL}
+    };
+    GSimpleActionGroup* group;
     const char * text = 
 "flower { \n \
     axiom F[+F+F][-F-F][++F][--F]F \n \
@@ -167,7 +224,11 @@ int main(int argc, char** argv) {
 
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_default_size (GTK_WINDOW (window), 1024, 768);
-  
+    group = g_simple_action_group_new ();
+    g_action_map_add_action_entries (G_ACTION_MAP(group), action_entries, G_N_ELEMENTS (action_entries), &app);
+    gtk_widget_insert_action_group (window, "lsystem", G_ACTION_GROUP (group));
+
+    main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     drawing_area = gtk_drawing_area_new();
     text_view = gtk_text_view_new();
@@ -175,7 +236,10 @@ int main(int argc, char** argv) {
     gtk_text_buffer_set_text (buffer, text, -1);
     gtk_text_view_set_monospace(GTK_TEXT_VIEW(text_view), TRUE);
 
-    gtk_container_add(GTK_CONTAINER(window), box);
+    gtk_container_add(GTK_CONTAINER(window), main_box);
+
+    gtk_box_pack_start(GTK_BOX(main_box), create_toolbar(&app), FALSE, TRUE, 0);
+    gtk_box_pack_end(GTK_BOX(main_box), box, TRUE, TRUE, 0);
 
     gtk_box_pack_start(GTK_BOX(box), drawing_area, TRUE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(box), text_view, TRUE, TRUE, 0);
@@ -186,6 +250,9 @@ int main(int argc, char** argv) {
     compile(&app);
 
     gtk_widget_show_all (window);
+
+    //const char *accels[] = {"F5", NULL};
+    //gtk_application_set_accels_for_action(gtk_window_get_application(GTK_WINDOW(window)), "lsystem.run", accels);
 
     g_signal_connect(drawing_area, "configure-event", G_CALLBACK(configure_event_cb), &app);
     g_signal_connect(drawing_area, "draw", G_CALLBACK(draw_cb), &app);
