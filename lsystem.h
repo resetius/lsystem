@@ -36,7 +36,7 @@ void parser_push_mgl(struct Parser* parser, const char* str);
 void parser_set_axiom(struct Parser* parser, const char* str);
 void parser_set_angle(struct Parser* parser, double a);
 void parser_set_angle_init(struct Parser* parser, double a);
-void parser_set_var(struct Parser* parser, char k, const char* str);
+void parser_add_rule(struct Parser* parser, char k, const char* str);
 void parser_set_order(struct Parser* parser, double n);
 void parser_set_error(struct Parser* parser, const char* str);
 void parser_add_mgl(struct Parser* parser, const char* str);

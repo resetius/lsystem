@@ -215,9 +215,20 @@ void parser_set_angle_init(struct Parser* p, double a) {
     p->last->alpha = a;
 }
 
-void parser_set_var(struct Parser* p, char k, const char* str) {
+void parser_add_rule(struct Parser* p, char k, const char* str) {
+    char* rule;
+    int len = strlen(str);
+    if (p->last->r[k]) {
+        len += strlen(p->last->r[k]);
+    }
+    rule = malloc((len+2));
+    rule[0] = 0;
+    if (p->last->r[k]) {
+        strcat(rule, p->last->r[k]);
+    }
+    strcat(rule, str);
     free(p->last->r[k]);
-    p->last->r[k] = strdup(str);
+    p->last->r[k] = rule;
 }
 
 void parser_set_order(struct Parser* p, double n) {
