@@ -155,16 +155,6 @@ run_cb (GSimpleAction *simple, GVariant      *parameter, gpointer user_data)
     gtk_widget_queue_draw(app->drawing_area);
 }
 
-static void close_window(GtkWidget* widget, struct App* app)
-{   
-    if (app->surface)
-    {
-        cairo_surface_destroy(app->surface);
-    }
-
-    gtk_main_quit();
-}
-
 static GtkWidget* create_toolbar(struct App* app) {
     GtkWidget* toolbar;
     GtkToolItem* item;
@@ -192,8 +182,7 @@ static GtkWidget* create_toolbar(struct App* app) {
     return toolbar;
 }
 
-int main(int argc, char** argv) {
-    struct App app;
+static void on_app_activate(GApplication *a, struct App* app) {
     GtkWidget* window;
     GtkWidget* box; // drawing_area and text
     GtkWidget* main_box; // toolbar and other
@@ -216,16 +205,10 @@ int main(int argc, char** argv) {
 } \n \
 ";
 
-    memset(&app, 0, sizeof(struct App));
-
-    gtk_disable_setlocale(); // parser works incorrect with locale set
-
-    gtk_init(&argc, &argv);
-
-    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    window = gtk_application_window_new(GTK_APPLICATION(a));
     gtk_window_set_default_size (GTK_WINDOW (window), 1024, 768);
     group = g_simple_action_group_new ();
-    g_action_map_add_action_entries (G_ACTION_MAP(group), action_entries, G_N_ELEMENTS (action_entries), &app);
+    g_action_map_add_action_entries (G_ACTION_MAP(group), action_entries, G_N_ELEMENTS (action_entries), app);
     gtk_widget_insert_action_group (window, "lsystem", G_ACTION_GROUP (group));
 
     main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -238,27 +221,47 @@ int main(int argc, char** argv) {
 
     gtk_container_add(GTK_CONTAINER(window), main_box);
 
-    gtk_box_pack_start(GTK_BOX(main_box), create_toolbar(&app), FALSE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(main_box), create_toolbar(app), FALSE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(main_box), box, TRUE, TRUE, 0);
 
     gtk_box_pack_start(GTK_BOX(box), drawing_area, TRUE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(box), text_view, TRUE, TRUE, 0);
     gtk_box_set_homogeneous(GTK_BOX(box), TRUE);
 
-    app.drawing_area = drawing_area;
-    app.text_view = text_view;
-    compile(&app);
+    app->drawing_area = drawing_area;
+    app->text_view = text_view;
+    compile(app);
 
     gtk_widget_show_all (window);
 
-    //const char *accels[] = {"F5", NULL};
-    //gtk_application_set_accels_for_action(gtk_window_get_application(GTK_WINDOW(window)), "lsystem.run", accels);
+    const char *accels[] = {"F5", NULL};
+    gtk_application_set_accels_for_action(GTK_APPLICATION(a), "lsystem.run", accels);
 
-    g_signal_connect(drawing_area, "configure-event", G_CALLBACK(configure_event_cb), &app);
-    g_signal_connect(drawing_area, "draw", G_CALLBACK(draw_cb), &app);
-    g_signal_connect(window, "key-press-event", G_CALLBACK(key_press_event), &app);
-    g_signal_connect(window, "destroy", G_CALLBACK(close_window), &app);
+    g_signal_connect(drawing_area, "configure-event", G_CALLBACK(configure_event_cb), app);
+    g_signal_connect(drawing_area, "draw", G_CALLBACK(draw_cb), app);
+    g_signal_connect(window, "key-press-event", G_CALLBACK(key_press_event), app);
+};
 
-    gtk_main();    
-    return 0;
+int main(int argc, char** argv) {
+    struct App app;
+    memset(&app, 0, sizeof(struct App));
+
+    GtkApplication *a = gtk_application_new(
+        "org.lsystem", 
+        G_APPLICATION_FLAGS_NONE
+    );
+
+    gtk_disable_setlocale(); // parser works incorrect with locale set
+
+    g_signal_connect(a, "activate", G_CALLBACK(on_app_activate), &app);
+    
+    int status = g_application_run(G_APPLICATION(a), argc, argv);
+    g_object_unref(a);
+
+    if (app.surface)
+    {
+        cairo_surface_destroy(app.surface);
+    }
+
+    return status;
 }
