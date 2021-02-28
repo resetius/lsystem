@@ -1,6 +1,6 @@
 project(fractal)
 
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.16)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
@@ -52,7 +52,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(fractal ${source})
 
 add_executable(lsystem main.c)
-target_link_libraries(lsystem fractal ${GD_LIB})
+target_link_libraries(lsystem fractal ${GD_LIB} ${MATH})
 
 add_executable(lsystem_gui main_gui.c)
-target_link_libraries(lsystem_gui fractal ${GD_LIB} ${GTK3_LIBRARIES})
+target_link_libraries(lsystem_gui fractal ${GD_LIB} ${GTK3_LIBRARIES} ${MATH})
