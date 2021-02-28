@@ -6,6 +6,7 @@
 
 struct App {
     cairo_surface_t *surface;
+    GtkWidget* window;
     GtkWidget* drawing_area;
     GtkWidget* text_view;
     struct Line* lines;
@@ -135,9 +136,60 @@ static gboolean key_press_event(GtkWidget* widget, GdkEventKey* event, struct Ap
     return FALSE;
 }
 
+static void open_file(char* filename, struct App* app) {
+    FILE* f = fopen(filename, "rb");
+    if (f == NULL) {
+        return;
+    }
+    char buf[1024];
+    GtkTextBuffer* buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (app->text_view));
+    GtkTextIter start, end;
+    gtk_text_buffer_get_start_iter(buffer, &start);
+    gtk_text_buffer_get_end_iter(buffer, &end);
+    gtk_text_buffer_delete(buffer, &start, &end);
+
+    int size;
+    while ((size = fread(buf, 1, sizeof(buf), f)) > 0) {
+        gtk_text_buffer_get_end_iter(buffer, &end);
+        gtk_text_buffer_insert(buffer, &end, buf, size);
+    }
+
+    fclose(f);
+
+    snprintf(buf, sizeof(buf), "lsystem (%s)", filename);
+    gtk_window_set_title(GTK_WINDOW(app->window), buf);
+}
+
 static void
 open_cb (GSimpleAction *simple, GVariant      *parameter, gpointer user_data)
 {
+    struct App* app = (struct App*)user_data;
+    GtkWidget *dialog;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+    gint res;
+
+    dialog = gtk_file_chooser_dialog_new (
+        "Open File",
+        GTK_WINDOW(app->window),
+        action,
+        "_Cancel",
+        GTK_RESPONSE_CANCEL,
+        "_Open",
+        GTK_RESPONSE_ACCEPT,
+        NULL);
+
+    res = gtk_dialog_run (GTK_DIALOG (dialog));
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+        filename = gtk_file_chooser_get_filename (chooser);
+        open_file (filename, app);
+        g_free (filename);
+    }
+
+    gtk_widget_destroy (dialog);
+
     fprintf(stderr, "open\n");
 }
 
@@ -230,6 +282,8 @@ static void on_app_activate(GApplication *a, struct App* app) {
 
     app->drawing_area = drawing_area;
     app->text_view = text_view;
+    app->window = window;
+
     compile(app);
 
     gtk_widget_show_all (window);
