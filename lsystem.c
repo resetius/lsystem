@@ -142,6 +142,7 @@ struct StringListItem* group_mgl_start(struct Group* g) {
 
 struct Parser {
     int error;
+    int error_line;
     char* error_str;
     struct Group* head;
     struct Group* tail;
@@ -235,8 +236,9 @@ void parser_set_order(struct Parser* p, double n) {
     group_set_order(p->last, n);
 }
 
-void parser_set_error(struct Parser* p, const char* str) {
+void parser_set_error(struct Parser* p, const char* str, int lineno) {
     p->error = 1;
+    p->error_line = lineno;
     p->error_str = strdup(str);
     if (p->last) {
         p->last->error = 1;
@@ -273,4 +275,8 @@ void parser_print_error(struct Parser* p) {
     if (p->error_str) {
         fprintf(stderr, "Parser error: '%s'\n", p->error_str);
     }
+}
+
+int parser_get_error_line(struct Parser* p) {
+    return p->error_line;
 }

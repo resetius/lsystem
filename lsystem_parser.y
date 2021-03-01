@@ -73,7 +73,6 @@ int yyerror(struct Parser * ptr, const char * s)
 {
     char buf[1024];
     snprintf(buf, 1024, "syntax error near line %d", yyget_lineno()); 
-    parser_set_error(ptr, buf);
+    parser_set_error(ptr, buf, yyget_lineno());
     return 0;
 }
-

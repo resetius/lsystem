@@ -38,13 +38,14 @@ void parser_set_angle(struct Parser* parser, double a);
 void parser_set_angle_init(struct Parser* parser, double a);
 void parser_add_rule(struct Parser* parser, char k, const char* str);
 void parser_set_order(struct Parser* parser, double n);
-void parser_set_error(struct Parser* parser, const char* str);
+void parser_set_error(struct Parser* parser, const char* str, int lineno);
 void parser_add_mgl(struct Parser* parser, const char* str);
 void parser_print(struct Parser* parser);
 void parser_check(struct Parser* parser);
 struct Group* parser_group_start(struct Parser* parser);
 int parser_has_error(struct Parser* parser);
 void parser_print_error(struct Parser* parser);
+int parser_get_error_line(struct Parser* parser);
 
 int yyparse(struct Parser * );
 

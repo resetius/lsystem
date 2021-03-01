@@ -190,7 +190,29 @@ static void compile(struct App* app) {
             gtk_widget_show(label);
         }
     } else {
+        int lineno = 0;
         parser_print_error(p);
+#if 0
+        lineno = parser_get_error_line(p);
+        GtkTextBuffer* buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (app->text_view));
+        GtkTextIter start, end;
+        gtk_text_buffer_get_iter_at_line_offset(buffer, &start, lineno-1, 0);
+        gtk_text_buffer_get_iter_at_line_offset(buffer, &end, lineno, 0);
+
+        char* new_text = NULL;
+        gchar* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+        if (strlen(text) > 0) {
+            gtk_text_buffer_delete(buffer, &start, &end);
+            new_text = malloc(strlen(text)); new_text[0] = 0;
+            strcat(new_text, "<span background=\"red\">");
+            strcat(new_text, text);
+            strcat(new_text, "</span>");
+            gtk_text_buffer_get_iter_at_line_offset(buffer, &start, lineno-1, 0);
+            gtk_text_buffer_insert_markup(buffer, &start, new_text, -1);
+        }
+        g_free(text);
+        free(new_text);
+#endif
     }
 
     free(text);
