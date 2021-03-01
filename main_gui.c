@@ -189,10 +189,14 @@ static void compile(struct App* app) {
             gtk_widget_show(t->drawing_area);
             gtk_widget_show(label);
         }
+
+        gtk_text_buffer_delete(buffer, &start, &end);
+        gtk_text_buffer_get_start_iter(buffer, &start);
+        gtk_text_buffer_insert(buffer, &start, text, -1);
     } else {
         int lineno = 0;
         parser_print_error(p);
-#if 0
+
         lineno = parser_get_error_line(p);
         GtkTextBuffer* buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (app->text_view));
         GtkTextIter start, end;
@@ -203,19 +207,20 @@ static void compile(struct App* app) {
         gchar* text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
         if (strlen(text) > 0) {
             gtk_text_buffer_delete(buffer, &start, &end);
-            new_text = malloc(strlen(text)); new_text[0] = 0;
+            new_text = malloc(strlen(text)+1024); new_text[0] = 0;
             strcat(new_text, "<span background=\"red\">");
             strcat(new_text, text);
             strcat(new_text, "</span>");
             gtk_text_buffer_get_iter_at_line_offset(buffer, &start, lineno-1, 0);
+            gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(app->text_view), &end, FALSE, FALSE, 0, 0);
+            gtk_text_buffer_place_cursor(buffer, &end);
             gtk_text_buffer_insert_markup(buffer, &start, new_text, -1);
         }
         g_free(text);
         free(new_text);
-#endif
     }
 
-    free(text);
+    g_free(text);
     parser_free(p);
 }
 
