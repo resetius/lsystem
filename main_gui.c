@@ -390,6 +390,7 @@ static void on_app_activate(GApplication *a, struct App* app) {
     gtk_text_view_set_monospace(GTK_TEXT_VIEW(text_view), TRUE);
 
     gtk_text_view_set_editable(GTK_TEXT_VIEW(log_view), FALSE);
+    gtk_widget_set_can_focus(log_view, FALSE);
     gtk_text_view_set_monospace(GTK_TEXT_VIEW(log_view), TRUE);
 
     gtk_container_add(GTK_CONTAINER(window), main_box);
