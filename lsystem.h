@@ -29,7 +29,8 @@ struct StringListItem* group_mgl_start(struct Group* g);
 
 struct Parser;
 
-struct Parser* parser_new();
+typedef void (*log_function_t)(void* user_data, const char* text);
+struct Parser* parser_new(log_function_t log, void* log_user_data);
 void parser_free(struct Parser* parser);
 void parser_push(struct Parser* parser, const char* str);
 void parser_push_mgl(struct Parser* parser, const char* str);
@@ -44,7 +45,6 @@ void parser_print(struct Parser* parser);
 void parser_check(struct Parser* parser);
 struct Group* parser_group_start(struct Parser* parser);
 int parser_has_error(struct Parser* parser);
-void parser_print_error(struct Parser* parser);
 int parser_get_error_line(struct Parser* parser);
 
 int yyparse(struct Parser * );

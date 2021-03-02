@@ -21,6 +21,7 @@ struct App {
     GtkWidget* window;
     GtkWidget* notebook;
     GtkWidget* text_view;
+    GtkWidget* log_view;
     struct Tab** tabs;
     int ntabs;
     int capacity;
@@ -124,15 +125,36 @@ static void destroy_tabs(struct App* app) {
     app->ntabs = 0;
 }
 
+static void
+log_function(struct App* app, const char* text) { 
+    GtkTextIter start, end;
+    GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(app->log_view));
+    gtk_text_buffer_get_start_iter(buffer, &start);
+    gtk_text_buffer_get_end_iter(buffer, &end);
+    //gtk_text_buffer_delete(buffer, &start, &end);
+    //gtk_text_buffer_get_start_iter(buffer, &start);
+    gtk_text_buffer_insert(buffer, &end, text, -1);
+    gtk_text_buffer_get_end_iter(buffer, &end);
+    gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(app->log_view), &end, FALSE, FALSE, 0, 0);
+
+    fprintf(stderr, "%s", text);
+}
+
 static void compile(struct App* app) {
-    struct Parser* p = parser_new();
+    struct Parser* p = parser_new((log_function_t)log_function, app);
     struct Group* g = NULL;
     struct Tab* t;
     
     GtkTextIter start, end;
     GtkWidget* label;
     gchar* text;
-    GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(app->text_view));
+
+    GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(app->log_view));
+    gtk_text_buffer_get_start_iter(buffer, &start);
+    gtk_text_buffer_get_end_iter(buffer, &end);
+    gtk_text_buffer_delete(buffer, &start, &end);
+
+    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(app->text_view));
     gtk_text_buffer_get_start_iter(buffer, &start);
     gtk_text_buffer_get_end_iter(buffer, &end);
     text = gtk_text_buffer_get_text(buffer, &start, &end, TRUE);
@@ -195,7 +217,6 @@ static void compile(struct App* app) {
         gtk_text_buffer_insert(buffer, &start, text, -1);
     } else {
         int lineno = 0;
-        parser_print_error(p);
 
         lineno = parser_get_error_line(p);
         GtkTextBuffer* buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (app->text_view));
@@ -325,9 +346,12 @@ static void on_app_activate(GApplication *a, struct App* app) {
     GtkWidget* window;
     GtkWidget* box; // drawing_area and text
     GtkWidget* main_box; // toolbar and other
+    GtkWidget* right_box; // text and log
     GtkWidget* text_view;
+    GtkWidget* log_view;
     GtkWidget* notebook;
     GtkWidget* scrolled;
+    GtkWidget* scrolled_log;
     GtkTextBuffer *buffer;
     GActionEntry action_entries[] =
     {
@@ -353,26 +377,38 @@ static void on_app_activate(GApplication *a, struct App* app) {
 
     main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    right_box = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
+
     scrolled = gtk_scrolled_window_new(NULL, NULL);
+    scrolled_log = gtk_scrolled_window_new(NULL, NULL);
     text_view = gtk_text_view_new();
+    log_view = gtk_text_view_new();
     notebook = gtk_notebook_new();
     gtk_notebook_set_scrollable(GTK_NOTEBOOK(notebook), TRUE);
     buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
     gtk_text_buffer_set_text (buffer, text, -1);
     gtk_text_view_set_monospace(GTK_TEXT_VIEW(text_view), TRUE);
 
+    gtk_text_view_set_editable(GTK_TEXT_VIEW(log_view), FALSE);
+    gtk_text_view_set_monospace(GTK_TEXT_VIEW(log_view), TRUE);
+
     gtk_container_add(GTK_CONTAINER(window), main_box);
     gtk_container_add(GTK_CONTAINER(scrolled), text_view);
+    gtk_container_add(GTK_CONTAINER(scrolled_log), log_view);
 
     gtk_box_pack_start(GTK_BOX(main_box), create_toolbar(app), FALSE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(main_box), box, TRUE, TRUE, 0);
 
     gtk_box_pack_start(GTK_BOX(box), notebook, TRUE, TRUE, 0);
-    gtk_box_pack_end(GTK_BOX(box), scrolled, TRUE, TRUE, 0);
+    gtk_box_pack_end(GTK_BOX(box), right_box, TRUE, TRUE, 0);
     gtk_box_set_homogeneous(GTK_BOX(box), TRUE);
+
+    gtk_paned_pack1(GTK_PANED(right_box), scrolled, TRUE, FALSE);
+    gtk_paned_pack2(GTK_PANED(right_box), scrolled_log, TRUE, FALSE);
 
     app->notebook = notebook;
     app->text_view = text_view;
+    app->log_view = log_view;
     app->window = window;
 
     compile(app);

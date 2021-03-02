@@ -20,13 +20,17 @@ struct Group
     // }
 
     int error;
+    log_function_t log;
+    void* log_user_data;
     int v[256];
 
     struct StringList mgl;
 };
 
-struct Group* group_new() {
+struct Group* group_new(log_function_t log, void* log_user_data) {
     struct Group* g = calloc(1, sizeof(struct Group));
+    g->log = log;
+    g->log_user_data = log_user_data;
     return g;
 }
 
@@ -82,27 +86,27 @@ void group_set_order(struct Group* g, double order) {
 
 int group_check(struct Group* g) {
     if (g->axiom == NULL || !*g->axiom) {
-        fprintf(stderr, "fail on axiom\n");
+        g->log(g->log_user_data, "fail on axiom\n");
         g->error = 1;
     }
 
     if (g->theta == 0) {
-        fprintf(stderr, "fail on theta\n");
+        g->log(g->log_user_data, "fail on theta\n");
         g->error = 1;
     }
     return g->error == 0;
 }
 
 void group_print(struct Group* g) {
-    int i;
-    fprintf(stderr, "error : %d\n", g->error);
-    fprintf(stderr, "alpha : %lf\n", g->alpha);
-    fprintf(stderr, "theta : %lf\n", g->theta);
-    fprintf(stderr, "axiom : %s\n", g->axiom);
+    int i; char buf[1025];
+    snprintf(buf, sizeof(buf), "error : %d\n", g->error); g->log(g->log_user_data, buf);
+    snprintf(buf, sizeof(buf), "alpha : %lf\n", g->alpha); g->log(g->log_user_data, buf);
+    snprintf(buf, sizeof(buf), "theta : %lf\n", g->theta); g->log(g->log_user_data, buf);
+    snprintf(buf, sizeof(buf), "axiom : %s\n", g->axiom); g->log(g->log_user_data, buf);
 
     for (i = 0; i < 255; i=i+1) {
         if (g->r[i]) {
-            fprintf(stderr, "%c : %s\n", i, g->r[i]);
+            snprintf(buf, sizeof(buf), "%c : %s\n", i, g->r[i]); g->log(g->log_user_data, buf);
         }
     }
 }
@@ -143,7 +147,8 @@ struct StringListItem* group_mgl_start(struct Group* g) {
 struct Parser {
     int error;
     int error_line;
-    char* error_str;
+    log_function_t log;
+    void* log_user_data;
     struct Group* head;
     struct Group* tail;
     struct Group* last;
@@ -151,10 +156,12 @@ struct Parser {
     struct StringList mgl;
 };
 
-struct Parser* parser_new() {
+struct Parser* parser_new(log_function_t log, void* log_user_data) {
     struct Parser* p = calloc(1, sizeof(struct Parser));
+    p->log = log;
+    p->log_user_data = log_user_data;
     p->tail = p->head = NULL;
-    p->last = group_new();
+    p->last = group_new(log, log_user_data);
     return p;
 }
 
@@ -162,7 +169,6 @@ void parser_free(struct Parser* p) {
     if (p) {
         struct Group* cur;
         struct Group* next;
-        free(p->error_str);
         cur = p->head;
         while (cur != NULL) {
             next = cur->next;
@@ -190,7 +196,7 @@ void parser_push(struct Parser* p, const char* str) {
         p->tail = p->last;
     }
 
-    p->last = group_new();
+    p->last = group_new(p->log, p->log_user_data);
 }
 
 void parser_push_mgl(struct Parser* p, const char* str) {
@@ -239,7 +245,7 @@ void parser_set_order(struct Parser* p, double n) {
 void parser_set_error(struct Parser* p, const char* str, int lineno) {
     p->error = 1;
     p->error_line = lineno;
-    p->error_str = strdup(str);
+    p->log(p->log_user_data, str);
     if (p->last) {
         p->last->error = 1;
     }
@@ -269,12 +275,6 @@ struct Group* parser_group_start(struct Parser* p) {
 
 int parser_has_error(struct Parser* p) {
     return p->error != 0;
-}
-
-void parser_print_error(struct Parser* p) {
-    if (p->error_str) {
-        fprintf(stderr, "Parser error: '%s'\n", p->error_str);
-    }
 }
 
 int parser_get_error_line(struct Parser* p) {

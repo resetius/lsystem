@@ -21,8 +21,12 @@ void usage(const char * n)
     exit(0);
 }
 
+static void log_function(void* unused, const char* text) {
+    fprintf(stderr, "%s", text);
+}
+
 int main(int argc, char** argv) {
-    struct Parser* p = parser_new();
+    struct Parser* p = parser_new(log_function, NULL);
     struct Group* g = NULL;
     FILE * f  = 0;
     int level = 0;
@@ -58,12 +62,9 @@ int main(int argc, char** argv) {
     while (yyparse(p) && !parser_has_error(p));
 
     if (parser_has_error(p)) {
-        parser_print_error(p);
         parser_free(p);
         return -1;
     }
-    
-    parser_print(p);
 
     for (g = parser_group_start(p); g != NULL; g = group_next(g))
     {
