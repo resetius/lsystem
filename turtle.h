@@ -17,3 +17,4 @@ extern struct State st;
 #define COLOR 257  
 #define INCNUMBER 258
 #define INCCOLOR  259
+#define DELAY 260

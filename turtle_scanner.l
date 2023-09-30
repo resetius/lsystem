@@ -1,5 +1,5 @@
 %{
-/* Copyright (c) 2008-2021 Alexey Ozeritskiy
+/* Copyright (c) 2008-2023 Alexey Ozeritskiy
  * All rights reserved.
  */
  
@@ -21,6 +21,11 @@ VAR [a-zA-Z]
 "!"       { /*inverse*/ return '!'; }
 "+"       { /*inc angle*/ return '+'; }
 "-"       { /*dec angle*/ return '-'; }
+"("{INT}")" { /*delay expand*/ 
+              sscanf(&yytext[1],"%d", &st.i);
+              st.str = strdup(yytext);
+              return DELAY;
+          }
 "["|"]"   { /*branch */   return yytext[0]; }
 "C"{INT}  { /*color*/
               sscanf(&yytext[1],"%d", &st.i); 

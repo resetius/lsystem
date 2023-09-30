@@ -41,10 +41,24 @@ static void string_append_char(struct String* s, char c) {
     s->r[s->size] = 0;
 }
 
+void maybe_expand(struct String* r, struct Group* gr, int var)
+{
+    if (var) {
+        const char* val = group_get_var(gr, var);
+        if (val) {
+            string_append(r, val);
+        } else {
+            string_append_char(r, (char)var);
+        }
+    }
+}
+
 char* lsystem_iter(char* src, struct Group* gr)
 {
-    int result;
+    int result = 0;
+    int var = 0;
     struct String r;
+    char delay_buf[100];
     memset(&r, 0, sizeof(struct String));
     YY_BUFFER_STATE buf_state;
 
@@ -57,27 +71,36 @@ char* lsystem_iter(char* src, struct Group* gr)
         case '-':
         case '[':
         case ']':
+            maybe_expand(&r, gr, var); var = 0;
             string_append_char(&r, (char)result);
+            break;
+        case DELAY:
+            if (st.i == 0) {
+                maybe_expand(&r, gr, var);
+            } else {
+                snprintf(delay_buf, sizeof(delay_buf), "%c(%d)", var, st.i-1);
+                string_append(&r, delay_buf);
+            }
+            var = 0;
+            free(st.str);
             break;
         case INCNUMBER:
         case INCCOLOR:
         case COLOR:
         case NUMBER:
+            maybe_expand(&r, gr, var);
+            var = 0;
             string_append(&r, st.str); 
             free(st.str);
             break;
         default: {
-            const char* val = group_get_var(gr, result);
-            if (val) {
-                string_append(&r, val);
-            } else {
-//				cerr << "not replaced " << (char)result << "\n";
-                string_append_char(&r, (char)result);
-            }
+            var = result;
             break;
         }
         }
     }
+
+    maybe_expand(&r, gr, var);
 
     turtle_delete_buffer(buf_state);
 
@@ -146,7 +169,6 @@ struct Line* turtle(struct Group* p, const char* src)
             break;
             /*branch open*/
         case '[':
-            //printf("branch [\n");
             if (stk_pos >= stk_capacity) {
                 stk_capacity = (stk_capacity+1)*2;
                 stk = realloc(stk, stk_capacity*sizeof(struct Context));
@@ -155,7 +177,6 @@ struct Line* turtle(struct Group* p, const char* src)
             break;
             /*branch close*/
         case ']':
-            //printf("branch ]\n");
             c = stk[--stk_pos];
             break;
             /*forward*/
@@ -175,7 +196,6 @@ struct Line* turtle(struct Group* p, const char* src)
             break;
         }
         case '!':
-            //printf("reverse sign\n");
             c.sgn = -c.sgn;
             break;
         case COLOR:
@@ -186,11 +206,9 @@ struct Line* turtle(struct Group* p, const char* src)
             free(st.str);
             break;
         case NUMBER:
-//			printf("mult r %lf\n", st.m);
             c.r *= st.m; free(st.str);
             break;
         case INCNUMBER:
-            //printf("inc angle by %d\n", st.i);
             inc = c.sgn * (double)st.i * M_PI / 180.0;
             c.a += inc; 
             free(st.str);
