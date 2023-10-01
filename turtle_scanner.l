@@ -14,7 +14,7 @@ struct State st = {0, 0, 0};
 %option header-file="turtle_scanner.h" prefix="turtle" case-insensitive
 NUM [0-9]*\.?[0-9]+
 INT [0-9]+
-VAR [a-zA-Z]
+VAR [\.a-zA-Z]
 %%
 "f"|"d"   { /*forward*/ return 'F'; }
 "g"|"m"   { /*skip*/    return 'G'; }
