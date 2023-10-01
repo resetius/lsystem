@@ -1,5 +1,5 @@
 
-/* Copyright (c) 2008-2021 Alexey Ozeritskiy
+/* Copyright (c) 2008-2023 Alexey Ozeritskiy
  * All rights reserved.
  */
 
@@ -94,6 +94,7 @@ char* lsystem_iter(char* src, struct Group* gr)
             free(st.str);
             break;
         default: {
+            maybe_expand(&r, gr, var);
             var = result;
             break;
         }

@@ -61,7 +61,7 @@ VAR [a-zA-Z]
           }
 "@"{NUM}  { /*len multiply*/ sscanf(&yytext[1], "%lf", &st.m); 
               st.str = strdup(yytext); return NUMBER; }
-"@q"{NUM} { /*square root*/ sscanf(&yytext[2],"%lf", &st.m); 
+"@Q"{NUM} { /*square root*/ sscanf(&yytext[2],"%lf", &st.m); 
                  st.m   = sqrt(st.m);
                  st.str = strdup(yytext); 
                  BEGIN(INITIAL);
