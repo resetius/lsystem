@@ -426,7 +426,7 @@ int main(int argc, char** argv) {
 
     GtkApplication *a = gtk_application_new(
         "org.lsystem", 
-        G_APPLICATION_FLAGS_NONE
+        G_APPLICATION_DEFAULT_FLAGS
     );
 
     gtk_disable_setlocale(); // parser works incorrect with locale set
