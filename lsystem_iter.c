@@ -53,13 +53,11 @@ void maybe_expand(struct String* r, struct Group* gr, int var)
     }
 }
 
-char* lsystem_iter(char* src, struct Group* gr)
+void lsystem_iter(struct String* r, const char* src, struct Group* gr)
 {
     int result = 0;
     int var = 0;
-    struct String r;
     char delay_buf[100];
-    memset(&r, 0, sizeof(struct String));
     YY_BUFFER_STATE buf_state;
 
     buf_state = turtle_scan_string(&src[0]);
@@ -71,15 +69,15 @@ char* lsystem_iter(char* src, struct Group* gr)
         case '-':
         case '[':
         case ']':
-            maybe_expand(&r, gr, var); var = 0;
-            string_append_char(&r, (char)result);
+            maybe_expand(r, gr, var); var = 0;
+            string_append_char(r, (char)result);
             break;
         case DELAY:
             if (st.i == 0) {
-                maybe_expand(&r, gr, var);
+                maybe_expand(r, gr, var);
             } else {
                 snprintf(delay_buf, sizeof(delay_buf), "%c(%d)", var, st.i-1);
-                string_append(&r, delay_buf);
+                string_append(r, delay_buf);
             }
             var = 0;
             free(st.str);
@@ -88,37 +86,40 @@ char* lsystem_iter(char* src, struct Group* gr)
         case INCCOLOR:
         case COLOR:
         case NUMBER:
-            maybe_expand(&r, gr, var);
+            maybe_expand(r, gr, var);
             var = 0;
-            string_append(&r, st.str); 
+            string_append(r, st.str); 
             free(st.str);
             break;
         default: {
-            maybe_expand(&r, gr, var);
+            maybe_expand(r, gr, var);
             var = result;
             break;
         }
         }
     }
 
-    maybe_expand(&r, gr, var);
+    maybe_expand(r, gr, var);
 
     turtle_delete_buffer(buf_state);
-
-    return r.r;
 }
 
 char* lsystem(struct Group* gr, int level) {
-    char* W = strdup(group_get_axiom(gr));
-    char* Next;
+    struct String cur;
+    struct String next;
+    struct String tmp;
+    memset(&cur, 0, sizeof(cur));
+    memset(&next, 0, sizeof(next));
+    string_append(&cur, group_get_axiom(gr));
 
     for (int i = 0; i < level; ++i) {
-        Next = lsystem_iter(W, gr);
-        free(W);
-        W = Next;
+        next.size = 0;
+        lsystem_iter(&next, cur.r, gr);
+        tmp = next; next = cur; cur = tmp;
     }
 
-    return W;
+    free(next.r);
+    return cur.r;
 }
 
 struct Context {
@@ -184,7 +185,6 @@ struct Line* turtle(struct Group* p, const char* src)
         case 'F':
         case 'D': {
             struct Line* l = calloc(1, sizeof(struct Line));
-            //printf("draw\n");
             l->x0 = c.x0; l->y0 = c.y0;
             c.x0 += c.r * cos(c.a); c.y0 += c.r * sin(c.a);
             l->x1 = c.x0; l->y1 = c.y0;
