@@ -14,7 +14,6 @@ void usage(const char * n)
     printf("%s [-f filename] [-t type] [-l order] [-w width] [-h height] \n", n);
     printf("-f -- read lsystem from file (stdin - default)\n");
     printf("-t -- points save type: \n");
-    printf("\t\t mgl -- MathGL script\n");
     printf("\t\t png -- PNG\n");
     printf("\t\t txt -- txt\n");
     printf("-l -- default order \n");
@@ -47,8 +46,6 @@ int main(int argc, char** argv) {
         } else if (!strcmp(argv[i], "-t") && i < argc - 1) {
             if (!strcmp(argv[i + 1], "txt")) {
                 type = 0;
-            } else if (!strcmp(argv[i + 1], "mgl")) {
-                type = 1;
             } else if (!strcmp(argv[i + 1], "png")) {
                 type = 2;
             }
@@ -95,9 +92,6 @@ int main(int argc, char** argv) {
         switch (type) {
         case 0:
             lines_save_txt(group_get_name(g), lines, min_x, max_x, min_y, max_y);
-            break;
-        case 1:
-            lines_save_mgl(g, lines, min_x, max_x, min_y, max_y);
             break;
         case 2:
             lines_save_png(group_get_name(g), lines, min_x, max_x, min_y, max_y, w, h);

@@ -1,19 +1,9 @@
 #pragma once
 
-/* Copyright (c) 2008-2021 Alexey Ozeritskiy
+/* Copyright (c) 2008-2023 Alexey Ozeritskiy
  * All rights reserved.
  */
 
-
-struct StringListItem {
-    char* val;
-    struct StringListItem* next;
-};
-
-struct StringList {
-    struct StringListItem* head;
-    struct StringListItem* tail;
-};
 
 struct Group;
 
@@ -33,14 +23,12 @@ typedef void (*log_function_t)(void* user_data, const char* text);
 struct Parser* parser_new(log_function_t log, void* log_user_data);
 void parser_free(struct Parser* parser);
 void parser_push(struct Parser* parser, const char* str);
-void parser_push_mgl(struct Parser* parser, const char* str);
 void parser_set_axiom(struct Parser* parser, const char* str);
 void parser_set_angle(struct Parser* parser, double a);
 void parser_set_angle_init(struct Parser* parser, double a);
 void parser_add_rule(struct Parser* parser, char k, const char* str);
 void parser_set_order(struct Parser* parser, double n);
 void parser_set_error(struct Parser* parser, const char* str, int lineno);
-void parser_add_mgl(struct Parser* parser, const char* str);
 void parser_print(struct Parser* parser);
 void parser_check(struct Parser* parser);
 struct Group* parser_group_start(struct Parser* parser);
@@ -69,6 +57,3 @@ void lines_save_png(
 void lines_save_txt(
     const char* name, struct Line* lines,
     double min_x, double max_x, double min_y, double max_y);
-void lines_save_mgl(
-	struct Group* g, struct Line* lines,
-	double min_x, double max_x, double min_y, double max_y);

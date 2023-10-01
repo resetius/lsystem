@@ -23,8 +23,6 @@ struct Group
     log_function_t log;
     void* log_user_data;
     int v[256];
-
-    struct StringList mgl;
 };
 
 struct Group* group_new(log_function_t log, void* log_user_data) {
@@ -34,18 +32,6 @@ struct Group* group_new(log_function_t log, void* log_user_data) {
     return g;
 }
 
-static void string_list_destroy(struct StringList lst) {
-    struct StringListItem* cur = lst.head;
-    struct StringListItem* next;
-
-    while (cur != NULL) {
-        next = cur->next;
-        free(cur->val);
-        free(cur);
-        cur = next;
-    }
-}
-
 void group_free(struct Group* g) {
     if (g) {
         int i;
@@ -53,20 +39,8 @@ void group_free(struct Group* g) {
         for (i = 0; i < 256; i=i+1) {
             free(g->r[i]);
         }
-        string_list_destroy(g->mgl);
         free(g->name);
         free(g);
-    }
-}
-
-void group_add_mgl(struct Group* g, const char* str) {
-    struct StringListItem* item = calloc(1, sizeof(struct StringListItem));
-    item->val = strdup(str);
-    if (g->mgl.tail == NULL) {
-        g->mgl.tail = g->mgl.head = item;
-    } else {
-        g->mgl.tail->next = item;
-        g->mgl.tail = item;
     }
 }
 
@@ -139,11 +113,6 @@ struct Group* group_next(struct Group* g) {
     return g->next;
 }
 
-
-struct StringListItem* group_mgl_start(struct Group* g) {
-    return g->mgl.head;
-}
-
 struct Parser {
     int error;
     int error_line;
@@ -152,8 +121,6 @@ struct Parser {
     struct Group* head;
     struct Group* tail;
     struct Group* last;
-
-    struct StringList mgl;
 };
 
 struct Parser* parser_new(log_function_t log, void* log_user_data) {
@@ -175,7 +142,6 @@ void parser_free(struct Parser* p) {
             group_free(cur);
             cur = next;
         }
-        string_list_destroy(p->mgl);
         group_free(p->last);
         free(p);
     }
@@ -183,11 +149,6 @@ void parser_free(struct Parser* p) {
 
 void parser_push(struct Parser* p, const char* str) {
     p->last->name = strdup(str);
-    if (p->mgl.head != NULL) {
-        p->mgl.tail = p->last->mgl.head;
-        p->last->mgl = p->mgl;
-        p->mgl.head = p->mgl.tail = NULL;
-    }
 
     if (p->head == NULL) {
         p->head = p->tail = p->last;
@@ -197,17 +158,6 @@ void parser_push(struct Parser* p, const char* str) {
     }
 
     p->last = group_new(p->log, p->log_user_data);
-}
-
-void parser_push_mgl(struct Parser* p, const char* str) {
-    struct StringListItem * item = calloc(1, sizeof(struct StringListItem));
-    item->val = strdup(str);
-    if (p->mgl.head == NULL) {
-        p->mgl.head = p->mgl.tail = item;
-    } else {
-        p->mgl.tail->next = item;
-        p->mgl.tail = item;
-    }
 }
 
 void parser_set_axiom(struct Parser* p, const char* str) {
@@ -249,10 +199,6 @@ void parser_set_error(struct Parser* p, const char* str, int lineno) {
     if (p->last) {
         p->last->error = 1;
     }
-}
-
-void parser_add_mgl(struct Parser* p, const char* str) {
-    group_add_mgl(p->last, str);
 }
 
 void parser_print(struct Parser* p) {

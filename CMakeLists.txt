@@ -20,7 +20,7 @@ else ()
 add_definitions(-DYY_NO_UNISTD_H -D_USE_MATH_DEFINES)
 endif ()
 
-set(source lsystem.c lsystem_iter.c lines_normilize.c lines_save_png.c lines_save_mgl.c lines_save_txt.c)
+set(source lsystem.c lsystem_iter.c lines_normilize.c lines_save_png.c lines_save_txt.c)
 
 flex_target(lsystem_scanner lsystem_scanner.l ${CMAKE_CURRENT_BINARY_DIR}/lsystem_scanner.c)
 flex_target(turtle_scanner turtle_scanner.l ${CMAKE_CURRENT_BINARY_DIR}/turtle_scanner.c)

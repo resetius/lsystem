@@ -29,8 +29,6 @@ extern int yyget_lineno  (void);
 %token THETA
 %token ALPHA
 %token ANGLE
-%token MGL
-%token <str> MGLSTR
 %token ORDER
 %right '='
 %left '+' '-'
@@ -38,7 +36,6 @@ extern int yyget_lineno  (void);
 %%
 
 grp: GRPIDT '{' list '}' { parser_push(ptr, $1); /* named group   */ }
-    | MGL MGLSTR { parser_add_mgl(ptr, $2); }
     | grp grp
     ;
 
@@ -64,7 +61,6 @@ expr: AXIOM  TURTLE { parser_set_axiom(ptr, $2); free($2); }
     | ANGLE  number { parser_set_angle(ptr, M_PI * (360.0 / $2) / 180.0); }
     | ALPHA  number { parser_set_angle_init(ptr, $2); }
     | VAR   '=' turtle { parser_add_rule(ptr, $1[0], $3); free($3); }
-    | MGL    MGLSTR { parser_add_mgl(ptr, $2); }
     | ORDER  NUM    { parser_set_order(ptr, $2); }
     ;
 

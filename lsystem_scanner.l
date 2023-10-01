@@ -49,32 +49,19 @@ WHITESPACE [ \t]
        BEGIN(comment);
     }
 
-<comment>[ \t]*"mgl"[\ t]+ {
-                BEGIN(mgl);
-                return MGL;
-             }
 <comment>[ \t]*"order"[\ t]+ {
                 if (comment_caller != INITIAL) {
                     BEGIN(order);
                     return ORDER;
                 }
              }
-<mgl>.* {
- /*             printf("mgl: %s\n", yytext);*/
-             yylval.str = strdup(yytext);
-             BEGIN(comment);
-             return MGLSTR;
-        }
-
 <order>[0-9]+ {
-/*                  printf("order: %s\n", yytext);*/
                   sscanf(yytext, "%lf", &yylval.num);
                   BEGIN(comment);
                   return NUM;
               }
 
-<comment,mgl>"\n" { 
-/*             printf("end of comment %d\n", comment_caller);*/
+<comment>"\n" { 
              BEGIN(comment_caller); 
              ++yylineno;
              if (comment_caller != INITIAL) {
@@ -83,34 +70,31 @@ WHITESPACE [ \t]
          }
 
 <INITIAL>{IDT}  { 
-                /* printf("grp idt =  %s\n", yytext);  */
                     yylval.str = strdup(yytext); 
                     return GRPIDT; 
                 }
 <grp>{NUM}   { sscanf(yytext, "%lf", &yylval.num);
-               /* printf("number %lf\n", yylval.num);  */
                return NUM; 
              }
-<gen>{LS}    { /* printf("ls=%s\n", yytext);  */
+<gen>{LS}    {
                yylval.str = strdup_upper(yytext); 
                BEGIN(grp); return TURTLE; }
-<INITIAL,grp,gen>"{" { /* printf("grp\n"); */ 
+<INITIAL,grp,gen>"{" { 
                        BEGIN(grp);     return yytext[0]; }
-<grp,gen>"}" { /* printf("endof grp\n"); */ 
+<grp,gen>"}" {
                   BEGIN(INITIAL); return yytext[0]; }
-<grp>{AXIOM} { /* printf("axiom\n"); */ 
+<grp>{AXIOM} {
                   BEGIN(gen); return AXIOM; }
-<grp>{ALPHA} { /* printf("alpha\n"); */ return ALPHA; }
-<grp>{THETA} { /* printf("theta\n"); */ return THETA; }
-<grp>{ANGLE} { /* printf("angle\n"); */ return ANGLE; }
+<grp>{ALPHA} { return ALPHA; }
+<grp>{THETA} { return THETA; }
+<grp>{ANGLE} { return ANGLE; }
 <grp>{VAR}   { 
-               /* printf("var=%s\n", yytext); */
                yylval.str = strdup_upper(yytext);
                BEGIN(gen); return VAR; 
              }
 <grp>{PI}    { yylval.num = M_PI; return NUM; }
-<grp>{OP}    { /* printf("op=%s\n", yytext); */ return yytext[0]; }
-<grp,gen>"=" { /* printf("op=%s\n", yytext); */ return yytext[0]; }
+<grp>{OP}    { return yytext[0]; }
+<grp,gen>"=" { return yytext[0]; }
 <grp,gen>"\n" { BEGIN(grp); ++yylineno; return '\n'; }
 .       {}
 "\n"    { ++yylineno; }
