@@ -19,7 +19,7 @@ static void init_color_map(int *colors, gdImagePtr im)
 }
 
 void lines_save_png(
-    const char* name, struct Line* lines,
+    const char* name, struct Line* lines, int n,
     double min_x, double max_x, double min_y, double max_y, int w, int h)
 {
     char buf[1024];
@@ -50,8 +50,9 @@ void lines_save_png(
     double yy = (h - 2) / (max_y - min_y);
     double kk = xx < yy ? xx : yy;
 
-    for (struct Line* it = lines; it != NULL; it=it->next)
+    for (int i = 0; i < n; i ++)
     {
+        struct Line* it = &lines[i];
         int x0 = (int)(1 + (it->x0 - min_x) * kk); 
         int y0 = (int)(1 + (it->y0 - min_y) * kk); y0 = h - y0 - 1;
         int x1 = (int)(1 + (it->x1 - min_x) * kk);

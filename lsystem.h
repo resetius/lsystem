@@ -45,15 +45,20 @@ struct Line {
     double x1;
     double y1;
     int c;
-    struct Line* next;
 };
 
-struct Line* turtle(struct Group* p, const char* W);
+struct Lines {
+    struct Line* lines;
+    int n;
+    int cap;
+};
 
-void lines_normilize(struct Line* lines, double* mnx, double* mxx, double* mny, double* mxy);
+void turtle(struct Lines* lines, struct Group* p, const char* W);
+
+void lines_normilize(struct Line* lines, int n, double* mnx, double* mxx, double* mny, double* mxy);
 void lines_save_png(
-	const char* name, struct Line* lines, 
+	const char* name, struct Line* lines, int n,
 	double min_x, double max_x, double min_y, double max_y, int w, int h);
 void lines_save_txt(
-    const char* name, struct Line* lines,
+    const char* name, struct Line* lines, int n,
     double min_x, double max_x, double min_y, double max_y);

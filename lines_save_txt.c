@@ -7,7 +7,7 @@
 #include "lsystem.h"
 
 void lines_save_txt(
-    const char* name, struct Line* lines,
+    const char* name, struct Line* lines, int n,
     double min_x, double max_x, double min_y, double max_y)
 {
     char buf[1024];
@@ -25,8 +25,9 @@ void lines_save_txt(
         return;
     }
 
-    for (struct Line* it = lines; it != NULL; it=it->next)
+    for (int i = 0; i < n; i ++)
     {
+        struct Line* it = &lines[i];
         fprintf(f, "{%.16lf, %.16lf}-{%.16lf, %.16lf} %d\n",
                     it->x0, it->y0, it->x1, it->y1, it->c);
     }

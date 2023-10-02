@@ -142,11 +142,17 @@ struct Context ctx(double alpha, double x, double y) {
     return c;
 }
 
-struct Line* turtle(struct Group* p, const char* src)
+void lines_append(struct Lines* lines, struct Line* l) {
+    if (lines->cap <= lines->n) {
+        lines->cap = (lines->cap+1)*2;
+        lines->lines = realloc(lines->lines, lines->cap * sizeof(struct Line));
+    }
+    lines->lines[lines->n++] = *l;
+}
+
+void turtle(struct Lines* lines, struct Group* p, const char* src)
 {
     double inc;
-    struct Line* head = NULL;
-    struct Line* tail = NULL;
     struct Context* stk = NULL;
     int stk_pos = 0;
     int stk_capacity = 0;
@@ -184,16 +190,12 @@ struct Line* turtle(struct Group* p, const char* src)
             /*forward*/
         case 'F':
         case 'D': {
-            struct Line* l = calloc(1, sizeof(struct Line));
-            l->x0 = c.x0; l->y0 = c.y0;
+            struct Line l;
+            l.x0 = c.x0; l.y0 = c.y0;
             c.x0 += c.r * cos(c.a); c.y0 += c.r * sin(c.a);
-            l->x1 = c.x0; l->y1 = c.y0;
-            l->c  = c.col;
-            if (head == NULL) {
-                head = tail = l;
-            } else {
-                tail->next = l; tail = l;
-            }
+            l.x1 = c.x0; l.y1 = c.y0;
+            l.c  = c.col;
+            lines_append(lines, &l);
             break;
         }
         case '!':
@@ -221,7 +223,5 @@ struct Line* turtle(struct Group* p, const char* src)
 
     free(stk);
     turtle_delete_buffer(buf_state);
-
-    return head;
 }
 

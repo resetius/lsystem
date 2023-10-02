@@ -6,14 +6,15 @@
 #include <stdlib.h>
 #include "lsystem.h"
 
-void lines_normilize(struct Line* lines, double* mnx, double* mxx, double* mny, double* mxy) {
+void lines_normilize(struct Line* lines, int n, double* mnx, double* mxx, double* mny, double* mxy) {
     double max_x, min_x;
     double max_y, min_y;
     max_x = min_x = lines->x0;
     max_y = min_y = lines->y0;
 
-    for (struct Line* it = lines; it != NULL; it = it->next)
+    for (int i = 0; i < n; i ++)
     {
+        struct Line* it = &lines[i];
         if (max_x < it->x0) max_x = it->x0;
         if (max_x < it->x1) max_x = it->x1;
         if (min_x > it->x0) min_x = it->x0;
@@ -33,8 +34,9 @@ void lines_normilize(struct Line* lines, double* mnx, double* mxx, double* mny, 
     *mnx = *mxx = (x - min_x) * yy - 1.0;
     *mny = *mxy = (y - min_y) * yy - 1.0;
 
-    for (struct Line* it = lines; it != NULL; it = it->next)
+    for (int i = 0; i < n; i ++)
     {
+        struct Line* it = &lines[i];
         it->x0 = (it->x0 - min_x) * kk - 1.0;
         it->x1 = (it->x1 - min_x) * kk - 1.0;
 

@@ -30,6 +30,8 @@ int main(int argc, char** argv) {
     FILE * f  = 0;
     int level = 0;
     int type  = 2;
+    struct Lines lines;
+    memset(&lines, 0, sizeof(lines));
 
     int w = 1024;
     int h = 1024;
@@ -68,7 +70,6 @@ int main(int argc, char** argv) {
         double min_x, max_x, min_y, max_y;
         int l;
         char* W;
-        struct Line* lines;
 
         if (!group_check(g)) continue;
 
@@ -81,20 +82,18 @@ int main(int argc, char** argv) {
         W = lsystem(g, l);
         fprintf(stderr, "  lsystem done\n");
         //fprintf(stderr, " '%s'\n", W);
-        lines = turtle(g, W); 
+        lines.n = 0;
+        turtle(&lines, g, W);
         free(W);
-        if (lines == NULL) {
-            continue;
-        }
         fprintf(stderr, "  turtle done\n");
-        lines_normilize(lines, &min_x, &max_x, &min_y, &max_y);
+        lines_normilize(lines.lines, lines.n, &min_x, &max_x, &min_y, &max_y);
         fprintf(stderr, "  normilize done\n");
         switch (type) {
         case 0:
-            lines_save_txt(group_get_name(g), lines, min_x, max_x, min_y, max_y);
+            lines_save_txt(group_get_name(g), lines.lines, lines.n, min_x, max_x, min_y, max_y);
             break;
         case 2:
-            lines_save_png(group_get_name(g), lines, min_x, max_x, min_y, max_y, w, h);
+            lines_save_png(group_get_name(g), lines.lines, lines.n, min_x, max_x, min_y, max_y, w, h);
             break;
         default:
             fprintf(stderr, "Unknown save type: %d\n", type);
@@ -103,6 +102,8 @@ int main(int argc, char** argv) {
         }
         fprintf(stderr, "  saving done\n");
     }
+
+    free(lines.lines);
 
     parser_free(p);
 

@@ -10,6 +10,7 @@ struct Tab {
     GtkWidget* notebook;
     GtkWidget* drawing_area;
     int pageno;
+    int n;
     struct Line* lines;
     double min_x;
     double max_x;
@@ -83,8 +84,9 @@ static gboolean configure_event_cb(GtkWidget *widget, GdkEventConfigure *event, 
     cairo_t* cr = cairo_create (t->surface);
 
     int k = 0;
-    for (struct Line* it = t->lines; it != NULL; it=it->next, k++)
+    for (int i = 0; i < t->n; i ++)
     {
+        struct Line* it = &t->lines[i];
         int x0 = (int)(1 + (it->x0 - min_x) * kk); 
         int y0 = (int)(1 + (it->y0 - min_y) * kk); y0 = h - y0 - 1;
         int x1 = (int)(1 + (it->x1 - min_x) * kk);
@@ -101,8 +103,6 @@ static gboolean configure_event_cb(GtkWidget *widget, GdkEventConfigure *event, 
 }
 
 static void destroy_tabs(struct App* app) {
-    struct Line* cur = NULL;
-    struct Line* next = NULL;
     int i;
     for (i = 0; i < app->ntabs; i=i+1) {
         if (app->tabs[i]->surface)
@@ -113,12 +113,7 @@ static void destroy_tabs(struct App* app) {
         if (app->notebook) {
             gtk_widget_destroy(app->tabs[i]->drawing_area);
         }
-        cur = app->tabs[i]->lines;
-        while (cur) {
-            next = cur->next;
-            free(cur);
-            cur = next;
-        }
+        free(app->tabs[i]->lines);
         free(app->tabs[i]->name);
         free(app->tabs[i]);
     }
@@ -177,22 +172,21 @@ static void compile(struct App* app) {
         parser_print(p);
 
         for (g = parser_group_start(p); g; g = group_next(g), pageno = pageno+1) {
+            struct Lines lines; memset(&lines, 0, sizeof(lines));
             l = group_get_order(g);
             if (l == 0) {
                 l = 2;
             }
             name = group_get_name(g);
             W = lsystem(g, l);
-            lines = turtle(g, W); 
+            turtle(&lines, g, W); 
             free(W);
 
             t = calloc(1, sizeof(struct Tab));
-            t->lines = lines;
+            t->n = lines.n;
+            t->lines = lines.lines;
             t->name = strdup(name);
-
-            if (lines != NULL) {
-                lines_normilize(lines, &t->min_x, &t->max_x, &t->min_y, &t->max_y);
-            }
+            lines_normilize(lines.lines, lines.n, &t->min_x, &t->max_x, &t->min_y, &t->max_y);
             t->drawing_area = gtk_drawing_area_new();
             t->notebook = app->notebook;
             t->pageno = pageno;
