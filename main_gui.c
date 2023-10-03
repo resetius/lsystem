@@ -196,30 +196,27 @@ static void compile(struct App* app) {
     parser_free(p);
 }
 
-static void open_file(char* filename, struct App* app) {
-    FILE* f = fopen(filename, "rb");
-    if (f == NULL) {
-        return;
-    }
-    char buf[1024];
+static void open_file(GFile* file, struct App* app) {
     GtkTextBuffer* buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (app->text_view));
     GtkTextIter start, end;
     gtk_text_buffer_get_start_iter(buffer, &start);
     gtk_text_buffer_get_end_iter(buffer, &end);
     gtk_text_buffer_delete(buffer, &start, &end);
 
-    int size;
-    while ((size = fread(buf, 1, sizeof(buf), f)) > 0) {
-        gchar* utf8 = g_utf8_make_valid(buf, size);
-        gtk_text_buffer_get_end_iter(buffer, &end);
-        gtk_text_buffer_insert(buffer, &end, utf8, strlen(utf8));
-        g_free(utf8);
+    char* contents;
+    gsize size;
+    g_file_load_contents(file, NULL, &contents, &size, NULL, NULL);
+    gchar* utf8 = g_utf8_make_valid(contents, size);
+    gtk_text_buffer_get_end_iter(buffer, &end);
+    gtk_text_buffer_insert(buffer, &end, utf8, strlen(utf8));
+    g_free(utf8);
+    g_free(contents);
+
+    char* name = g_file_get_basename(file);
+    if (name) {
+        gtk_window_set_title(GTK_WINDOW(app->window), name);
+        g_free(name);
     }
-
-    fclose(f);
-
-    snprintf(buf, sizeof(buf), "lsystem (%s)", filename);
-    gtk_window_set_title(GTK_WINDOW(app->window), buf);
 }
 
 static void
@@ -228,9 +225,7 @@ on_file_open(GObject* source, GAsyncResult* res, gpointer user_data)
     struct App* app = (struct App*)user_data;
     GFile* file = gtk_file_dialog_open_finish(GTK_FILE_DIALOG(source), res, NULL);
     if (file) {
-        char* path = g_file_get_path(file);
-        open_file(path, app);
-        g_free(path);
+        open_file(file, app);
         g_object_unref(file);
     }
 }
