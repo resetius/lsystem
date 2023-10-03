@@ -28,7 +28,7 @@ flex_target(lsystem_scanner lsystem_scanner.l ${CMAKE_CURRENT_BINARY_DIR}/lsyste
 flex_target(turtle_scanner turtle_scanner.l ${CMAKE_CURRENT_BINARY_DIR}/turtle_scanner.c 
 	COMPILE_FLAGS "--header-file=${CMAKE_CURRENT_BINARY_DIR}/turtle_scanner.h"
 	DEFINES_FILE "${CMAKE_CURRENT_BINARY_DIR}/turtle_scanner.h")
-bison_target(lsystem_parser lsystem_parser.y ${CMAKE_CURRENT_BINARY_DIR}/lsystem_parser.c)
+bison_target(lsystem_parser lsystem_parser.y ${CMAKE_CURRENT_BINARY_DIR}/lsystem_parser.c COMPILE_FLAGS "-Wcounterexamples")
 
 add_flex_bison_dependency(lsystem_scanner lsystem_parser)
 set(source ${source} 

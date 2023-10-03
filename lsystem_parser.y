@@ -35,9 +35,11 @@ extern int yyget_lineno  (void);
 %left '*' '/'
 %%
 
-grp: GRPIDT '{' list '}' { parser_push(ptr, $1); /* named group   */ }
-    | grp grp
+grp_list: grp
+    | grp_list grp
     ;
+
+grp: GRPIDT '{' list '}' { parser_push(ptr, $1); /* named group   */ }
 
 list: '\n'
     | list '\n'
