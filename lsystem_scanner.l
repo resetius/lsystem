@@ -9,7 +9,6 @@
 #include "lsystem.h"
 #include "lsystem_parser.h"
 
-int isatty(int) ;
 static int comment_caller;
 
 static char * strdup_upper(const char * p)
@@ -22,12 +21,10 @@ static char * strdup_upper(const char * p)
 }
 
 %}
-%option 8bit 
-%option header-file="lsystem_scanner.h" case-insensitive
+%option 8bit noyywrap case-insensitive
 %s gen
 %s grp
 %s comment
-%s mgl
 %s order
 AXIOM axiom
 ALPHA alpha
@@ -44,7 +41,6 @@ WHITESPACE [ \t]
 %%
 
 <INITIAL,gen,grp>";" {
-     /*  printf("begin comment %d\n", YY_START);*/
        comment_caller = YY_START;
        BEGIN(comment);
     }
@@ -104,9 +100,3 @@ WHITESPACE [ \t]
  без указания группы действует во всех группах
 <INITIAL> действует в первоначальной группе.
  */
-
-int yywrap()
-{
-    return 1;
-}
-
