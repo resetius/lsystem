@@ -32,7 +32,7 @@ static void string_append(struct String* s, const char *str) {
 }
 
 static void string_append_char(struct String* s, char c) {
-    if (s->size == s->capacity) {
+    if (s->size+2 > s->capacity) {
         s->capacity = (s->capacity+1)*2;
         s->r = realloc(s->r, s->capacity);
     }
