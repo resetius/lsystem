@@ -2,7 +2,7 @@
 #include "lsystem.h"
 #include "lsystem_scanner.h"
 #include "lsystem_parser.h"
-#include "colormap_vga1.h"
+#include "vga_palette.h"
 
 struct Tab {
     char* name;
@@ -87,11 +87,14 @@ static gboolean configure_event_cb(GtkWidget *widget, GdkEventConfigure *event, 
     for (int i = 0; i < t->n; i ++)
     {
         struct Line* it = &t->lines[i];
-        int x0 = (int)(1 + (it->x0 - min_x) * kk); 
+        int x0 = (int)(1 + (it->x0 - min_x) * kk);
         int y0 = (int)(1 + (it->y0 - min_y) * kk); y0 = h - y0 - 1;
         int x1 = (int)(1 + (it->x1 - min_x) * kk);
         int y1 = (int)(1 + (it->y1 - min_y) * kk); y1 = h - y1 - 1;
-        cairo_set_source_rgb(cr, colormap_vga1[it->c][0]/256., colormap_vga1[it->c][1]/256., colormap_vga1[it->c][2]/256.);
+        double r = (vga_palette[it->c] >> 16) & 0xff;
+        double g = (vga_palette[it->c] >> 8) & 0xff;
+        double b = (vga_palette[it->c] >> 0) & 0xff;
+        cairo_set_source_rgb(cr, r/256., g/256., b/256.);
         cairo_move_to(cr, x0, y0);
         cairo_line_to(cr, x1, y1);
         cairo_stroke(cr);
@@ -121,7 +124,7 @@ static void destroy_tabs(struct App* app) {
 }
 
 static void
-log_function(struct App* app, const char* text) { 
+log_function(struct App* app, const char* text) {
     GtkTextIter start, end;
     GtkTextBuffer* buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(app->log_view));
     gtk_text_buffer_get_start_iter(buffer, &start);
@@ -139,7 +142,7 @@ static void compile(struct App* app) {
     struct Parser* p = parser_new((log_function_t)log_function, app);
     struct Group* g = NULL;
     struct Tab* t;
-    
+
     GtkTextIter start, end;
     GtkWidget* label;
     gchar* text;
@@ -179,7 +182,7 @@ static void compile(struct App* app) {
             }
             name = group_get_name(g);
             W = lsystem(g, l);
-            turtle(&lines, g, W); 
+            turtle(&lines, g, W);
             free(W);
 
             t = calloc(1, sizeof(struct Tab));
@@ -318,12 +321,12 @@ static GtkWidget* create_toolbar(struct App* app) {
     item = gtk_tool_button_new(gtk_image_new_from_icon_name("document-open", GTK_ICON_SIZE_SMALL_TOOLBAR), "open");
     gtk_tool_item_set_tooltip_text(item, "open");
     gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.open");
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1); 
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
 
     item = gtk_tool_button_new(gtk_image_new_from_icon_name("document-save", GTK_ICON_SIZE_SMALL_TOOLBAR), "save");
     gtk_tool_item_set_tooltip_text(item, "save");
     gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.save");
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1); 
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
 
     item = gtk_separator_tool_item_new();
     gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
@@ -331,7 +334,7 @@ static GtkWidget* create_toolbar(struct App* app) {
     item = gtk_tool_button_new(gtk_image_new_from_icon_name("media-playback-start", GTK_ICON_SIZE_SMALL_TOOLBAR), "run");
     gtk_tool_item_set_tooltip_text(item, "run");
     gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.run");
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1); 
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
 
     return toolbar;
 }
@@ -354,7 +357,7 @@ static void on_app_activate(GApplication *a, struct App* app) {
         {"run", run_cb, NULL, NULL, NULL}
     };
     GSimpleActionGroup* group;
-    const char * text = 
+    const char * text =
 "flower { \n \
     axiom F[+F+F][-F-F][++F][--F]F \n \
     F=FF[++F][+F][F][-F][--F] \n \
@@ -419,14 +422,14 @@ int main(int argc, char** argv) {
     memset(&app, 0, sizeof(struct App));
 
     GtkApplication *a = gtk_application_new(
-        "org.lsystem", 
+        "org.lsystem",
         G_APPLICATION_DEFAULT_FLAGS
     );
 
     gtk_disable_setlocale(); // parser works incorrect with locale set
 
     g_signal_connect(a, "activate", G_CALLBACK(on_app_activate), &app);
-    
+
     int status = g_application_run(G_APPLICATION(a), argc, argv);
     g_object_unref(a);
 

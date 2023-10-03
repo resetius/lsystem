@@ -6,15 +6,15 @@
 #include <stdio.h>
 #include <gd.h>
 #include "lsystem.h"
-#include "colormap_vga1.h"
+#include "vga_palette.h"
 
 static void init_color_map(int *colors, gdImagePtr im)
 {
     for (int i = 0; i < 256; ++i) {
         colors[i] = gdImageColorAllocate(im,
-                                         colormap_vga1[i][0],
-                                         colormap_vga1[i][1],
-                                         colormap_vga1[i][2]);
+                                         (vga_palette[i] >> 16) & 0xff,
+                                         (vga_palette[i] >> 8) & 0xff,
+                                         (vga_palette[i] >> 0) & 0xff);
     }
 }
 
@@ -53,14 +53,14 @@ void lines_save_png(
     for (int i = 0; i < n; i ++)
     {
         struct Line* it = &lines[i];
-        int x0 = (int)(1 + (it->x0 - min_x) * kk); 
+        int x0 = (int)(1 + (it->x0 - min_x) * kk);
         int y0 = (int)(1 + (it->y0 - min_y) * kk); y0 = h - y0 - 1;
         int x1 = (int)(1 + (it->x1 - min_x) * kk);
         int y1 = (int)(1 + (it->y1 - min_y) * kk); y1 = h - y1 - 1;
         gdImageLine(im, x0, y0, x1, y1, colors[it->c]);
     }
 
-    gdImagePng(im, f); 
+    gdImagePng(im, f);
     fclose(f);
     gdImageDestroy(im);
 }
