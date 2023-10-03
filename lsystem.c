@@ -22,7 +22,6 @@ struct Group
     int error;
     log_function_t log;
     void* log_user_data;
-    int v[256];
 };
 
 struct Group* group_new(log_function_t log, void* log_user_data) {
@@ -46,12 +45,6 @@ void group_free(struct Group* g) {
 
 void group_set_axiom(struct Group* g, const char* p) {
     g->axiom = strdup(p);
-    while (*p) {
-        if (*p != '[' && *p != ']' && *p != '+' && *p != '-') {
-            g->v[*p] = 1;
-        }
-        p=p+1;
-    }
 }
 
 void group_set_order(struct Group* g, double order) {
