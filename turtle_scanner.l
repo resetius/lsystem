@@ -9,7 +9,7 @@
 %}
 %option 8bit
 %option noyywrap
-%option header-file="turtle_scanner.h" prefix="turtle" case-insensitive
+%option prefix="turtle" case-insensitive
 NUM [0-9]*\.?[0-9]+
 INT [0-9]+
 VAR [\.a-zA-Z]
