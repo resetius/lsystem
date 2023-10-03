@@ -3,16 +3,16 @@
  * All rights reserved.
  */
 
-#include "turtle_scanner.h"
 #include "turtle.h"
+#include "turtle_scanner.h"
 #include "lsystem.h"
 
 #include <math.h>
 
-int turtlewrap()
+/*int turtlewrap()
 {
     return 1;
-}
+}*/
 
 struct String {
     char* r;
@@ -59,9 +59,10 @@ void lsystem_iter(struct String* r, const char* src, struct Group* gr)
     int var = 0;
     char delay_buf[100];
     YY_BUFFER_STATE buf_state;
+    struct State st = {0, 0, 0};
 
     buf_state = turtle_scan_string(&src[0]);
-    while ((result = turtlelex()) != 0)
+    while ((result = turtlelex(&st)) != 0)
     {
         switch (result) {
         case '!': /*inverse +/-*/
@@ -80,7 +81,6 @@ void lsystem_iter(struct String* r, const char* src, struct Group* gr)
                 string_append(r, delay_buf);
             }
             var = 0;
-            free(st.str);
             break;
         case INCNUMBER:
         case INCCOLOR:
@@ -88,8 +88,7 @@ void lsystem_iter(struct String* r, const char* src, struct Group* gr)
         case NUMBER:
             maybe_expand(r, gr, var);
             var = 0;
-            string_append(r, st.str); 
-            free(st.str);
+            string_append(r, st.str);
             break;
         default: {
             maybe_expand(r, gr, var);
@@ -162,10 +161,11 @@ void turtle(struct Lines* lines, struct Group* p, const char* src)
 
     int result;
     YY_BUFFER_STATE buf_state;
+    struct State st = {0, 0, 0};
 
     buf_state = turtle_scan_string(&src[0]);
 
-    while ((result = turtlelex()) != 0)
+    while ((result = turtlelex(&st)) != 0)
     {
         switch (result) {
         case '+': c.a += c.sgn * theta; break;
@@ -202,19 +202,17 @@ void turtle(struct Lines* lines, struct Group* p, const char* src)
             c.sgn = -c.sgn;
             break;
         case COLOR:
-            c.col = st.i; free(st.str);
+            c.col = st.i;
             break;
         case INCCOLOR:
             c.col = (256 + c.col + st.i) % 256;
-            free(st.str);
             break;
         case NUMBER:
-            c.r *= st.m; free(st.str);
+            c.r *= st.m;
             break;
         case INCNUMBER:
             inc = c.sgn * (double)st.i * M_PI / 180.0;
-            c.a += inc; 
-            free(st.str);
+            c.a += inc;
             break;
         default:
             break;
@@ -224,4 +222,3 @@ void turtle(struct Lines* lines, struct Group* p, const char* src)
     free(stk);
     turtle_delete_buffer(buf_state);
 }
-

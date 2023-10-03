@@ -6,11 +6,9 @@
 #include <math.h>
 #include "turtle.h"
 
-int isatty(int);
-
-struct State st = {0, 0, 0};
 %}
 %option 8bit
+%option noyywrap
 %option header-file="turtle_scanner.h" prefix="turtle" case-insensitive
 NUM [0-9]*\.?[0-9]+
 INT [0-9]+
@@ -22,66 +20,60 @@ VAR [\.a-zA-Z]
 "+"       { /*inc angle*/ return '+'; }
 "-"       { /*dec angle*/ return '-'; }
 "("{INT}")" { /*delay expand*/ 
-              sscanf(&yytext[1],"%d", &st.i);
-              st.str = strdup(yytext);
+              sscanf(&yytext[1],"%d", &st->i);
+              st->str = yytext;
               return DELAY;
           }
 "["|"]"   { /*branch */   return yytext[0]; }
 "C"{INT}  { /*color*/
-              sscanf(&yytext[1],"%d", &st.i); 
-              st.str = strdup(yytext);
+              sscanf(&yytext[1],"%d", &st->i); 
+              st->str = yytext;
               return COLOR; 
           }
 "<"{INT}  { /*next color*/
-              sscanf(&yytext[1],"%d", &st.i);
-              st.str = strdup(yytext);
+              sscanf(&yytext[1],"%d", &st->i);
+              st->str = yytext;
               return INCCOLOR;
           }
 ">"{INT}  { /*prev color */
-              sscanf(&yytext[1],"%d", &st.i);
-              st.i   = -st.i;
-              st.str = strdup(yytext);
+              sscanf(&yytext[1],"%d", &st->i);
+              st->i   = -st->i;
+              st->str = yytext;
               return INCCOLOR;
           }
 "|"       { /*inc 180 deg*/
-                 st.i   = 180;
-                 st.str = strdup("|");
+                 st->i   = 180;
+                 st->str = yytext;
                  return INCNUMBER;
           }
 "\\"{INT} { /*inc INT deg */
-                 sscanf(&yytext[1], "%d", &st.i);
-                 st.str = strdup(yytext);
+                 sscanf(&yytext[1], "%d", &st->i);
+                 st->str = yytext;
                  return INCNUMBER;
           }
 "/"{INT}  { /*dec INT deg */
-                 sscanf(&yytext[1], "%d", &st.i);
-                 st.i   = -st.i;
-                 st.str = strdup(yytext);
+                 sscanf(&yytext[1], "%d", &st->i);
+                 st->i   = -st->i;
+                 st->str = yytext;
                  return INCNUMBER;
           }
-"@"{NUM}  { /*len multiply*/ sscanf(&yytext[1], "%lf", &st.m); 
-              st.str = strdup(yytext); return NUMBER; }
-"@Q"{NUM} { /*square root*/ sscanf(&yytext[2],"%lf", &st.m); 
-                 st.m   = sqrt(st.m);
-                 st.str = strdup(yytext); 
+"@"{NUM}  { /*len multiply*/ sscanf(&yytext[1], "%lf", &st->m);
+              st->str = yytext; return NUMBER; }
+"@Q"{NUM} { /*square root*/ sscanf(&yytext[2],"%lf", &st->m); 
+                 st->m   = sqrt(st->m);
+                 st->str = yytext;
                  BEGIN(INITIAL);
                  return NUMBER; 
           }
-"@I"{NUM} { /*inverse*/ sscanf(&yytext[2],"%lf", &st.m); 
-                 st.m   = 1.0 / st.m;
-                 st.str = strdup(yytext);  
+"@I"{NUM} { /*inverse*/ sscanf(&yytext[2],"%lf", &st->m); 
+                 st->m   = 1.0 / st->m;
+                 st->str = yytext;  
                  BEGIN(INITIAL);
                  return NUMBER;
           }
-"@IQ"{NUM} { /*inverse*/ sscanf(&yytext[3],"%lf", &st.m); 
-                 st.m   = 1.0 / sqrt(st.m);
-                 st.str = strdup(yytext);  
-                 BEGIN(INITIAL);
-                 return NUMBER;
-           }
-"@QI"{NUM} { /*inverse*/ sscanf(&yytext[3],"%lf", &st.m); 
-                 st.m   = 1.0 / sqrt(st.m);
-                 st.str = strdup(yytext);  
+"@IQ"{NUM}|"@QI"{NUM} { /*inverse*/ sscanf(&yytext[3],"%lf", &st->m); 
+                 st->m   = 1.0 / sqrt(st->m);
+                 st->str = yytext;  
                  BEGIN(INITIAL);
                  return NUMBER;
            }
