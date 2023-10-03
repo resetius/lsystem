@@ -6,7 +6,6 @@
 
 struct Tab {
     char* name;
-    cairo_surface_t *surface;
     GtkWidget* notebook;
     GtkWidget* drawing_area;
     int pageno;
@@ -28,24 +27,9 @@ struct App {
     int capacity;
 };
 
-static void clear_surface(cairo_surface_t *surface)
-{
-    cairo_t *cr;
-    cr = cairo_create(surface);
-
-    cairo_set_source_rgb(cr, 1, 1, 1);
-    cairo_paint(cr);
-
-    cairo_destroy(cr);
-}
-
 static gboolean draw_cb(GtkWidget* widget, cairo_t* cr, struct Tab* t)
 {
     double x0, y0;
-
-    if (t->surface == NULL) {
-        return TRUE;
-    }
 
     int pageno = gtk_notebook_get_current_page(GTK_NOTEBOOK(t->notebook));
     if (pageno < 0) {
@@ -55,33 +39,14 @@ static gboolean draw_cb(GtkWidget* widget, cairo_t* cr, struct Tab* t)
         return TRUE;
     }
 
-    cairo_set_source_surface(cr, t->surface, 0, 0);
-    cairo_paint(cr);
-
-    return TRUE;
-}
-
-static gboolean configure_event_cb(GtkWidget *widget, GdkEventConfigure *event, struct Tab* t)
-{
-    if (t->surface) {
-        cairo_surface_destroy(t->surface);
-    }
     int w = gtk_widget_get_allocated_width(widget);
     int h = gtk_widget_get_allocated_height(widget);
-
-    t->surface = gdk_window_create_similar_surface(
-        gtk_widget_get_window(widget), CAIRO_CONTENT_COLOR,
-        w, h);
-
-    clear_surface(t->surface);
 
     double min_x = t->min_x, max_x = t->max_x, min_y = t->min_y, max_y = t->max_y;
 
     double xx = (w - 2) / (max_x - min_x);
     double yy = (h - 2) / (max_y - min_y);
     double kk = xx < yy ? xx : yy;
-
-    cairo_t* cr = cairo_create (t->surface);
 
     int k = 0;
     for (int i = 0; i < t->n; i ++)
@@ -100,19 +65,12 @@ static gboolean configure_event_cb(GtkWidget *widget, GdkEventConfigure *event, 
         cairo_stroke(cr);
     }
 
-    cairo_destroy (cr);
-
     return TRUE;
 }
 
 static void destroy_tabs(struct App* app) {
     int i;
     for (i = 0; i < app->ntabs; i=i+1) {
-        if (app->tabs[i]->surface)
-        {
-            cairo_surface_destroy(app->tabs[i]->surface);
-            app->tabs[i]->surface = NULL;
-        }
         if (app->notebook) {
             gtk_widget_destroy(app->tabs[i]->drawing_area);
         }
@@ -193,7 +151,6 @@ static void compile(struct App* app) {
             t->drawing_area = gtk_drawing_area_new();
             t->notebook = app->notebook;
             t->pageno = pageno;
-            g_signal_connect(t->drawing_area, "configure-event", G_CALLBACK(configure_event_cb), t);
             g_signal_connect(t->drawing_area, "draw", G_CALLBACK(draw_cb), t);
 
             label = gtk_label_new(name);
