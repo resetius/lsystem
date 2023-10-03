@@ -27,20 +27,18 @@ struct App {
     int capacity;
 };
 
-static gboolean draw_cb(GtkWidget* widget, cairo_t* cr, struct Tab* t)
+static void draw_cb(GtkDrawingArea* widget, cairo_t *cr, int w, int h, void* user_data)
 {
+    struct Tab* t = user_data;
     double x0, y0;
 
     int pageno = gtk_notebook_get_current_page(GTK_NOTEBOOK(t->notebook));
     if (pageno < 0) {
-        return TRUE;
+        return;
     }
     if (pageno != t->pageno) {
-        return TRUE;
+        return;
     }
-
-    int w = gtk_widget_get_allocated_width(widget);
-    int h = gtk_widget_get_allocated_height(widget);
 
     double min_x = t->min_x, max_x = t->max_x, min_y = t->min_y, max_y = t->max_y;
 
@@ -64,16 +62,11 @@ static gboolean draw_cb(GtkWidget* widget, cairo_t* cr, struct Tab* t)
         cairo_line_to(cr, x1, y1);
         cairo_stroke(cr);
     }
-
-    return TRUE;
 }
 
 static void destroy_tabs(struct App* app) {
     int i;
     for (i = 0; i < app->ntabs; i=i+1) {
-        if (app->notebook) {
-            gtk_widget_destroy(app->tabs[i]->drawing_area);
-        }
         free(app->tabs[i]->lines);
         free(app->tabs[i]->name);
         free(app->tabs[i]);
@@ -125,6 +118,11 @@ static void compile(struct App* app) {
         struct Line* lines = NULL;
         const char* name;
 
+        int i;
+        for (i = 0; i < app->ntabs; i=i+1) {
+            gtk_notebook_remove_page(GTK_NOTEBOOK(app->notebook), 0);
+        }
+
         destroy_tabs(app);
 
         int l;
@@ -151,7 +149,9 @@ static void compile(struct App* app) {
             t->drawing_area = gtk_drawing_area_new();
             t->notebook = app->notebook;
             t->pageno = pageno;
-            g_signal_connect(t->drawing_area, "draw", G_CALLBACK(draw_cb), t);
+            gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(t->drawing_area), draw_cb, t, NULL);
+            gtk_widget_set_vexpand(t->drawing_area, TRUE);
+            gtk_widget_set_hexpand(t->drawing_area, TRUE);
 
             label = gtk_label_new(name);
             gtk_notebook_append_page(GTK_NOTEBOOK(app->notebook), t->drawing_area, label);
@@ -161,9 +161,6 @@ static void compile(struct App* app) {
                 app->tabs = realloc(app->tabs, app->capacity*sizeof(struct Tab*));
             }
             app->tabs[app->ntabs++] = t;
-
-            gtk_widget_show(t->drawing_area);
-            gtk_widget_show(label);
         }
 
         gtk_text_buffer_delete(buffer, &start, &end);
@@ -226,34 +223,23 @@ static void open_file(char* filename, struct App* app) {
 }
 
 static void
-open_cb (GSimpleAction *simple, GVariant      *parameter, gpointer user_data)
+on_file_open(GObject* source, GAsyncResult* res, gpointer user_data)
 {
     struct App* app = (struct App*)user_data;
-    GtkWidget *dialog;
-    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-    gint res;
-
-    dialog = gtk_file_chooser_dialog_new (
-        "Open File",
-        GTK_WINDOW(app->window),
-        action,
-        "_Cancel",
-        GTK_RESPONSE_CANCEL,
-        "_Open",
-        GTK_RESPONSE_ACCEPT,
-        NULL);
-
-    res = gtk_dialog_run (GTK_DIALOG (dialog));
-    if (res == GTK_RESPONSE_ACCEPT)
-    {
-        char *filename;
-        GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-        filename = gtk_file_chooser_get_filename (chooser);
-        open_file (filename, app);
-        g_free (filename);
+    GFile* file = gtk_file_dialog_open_finish(GTK_FILE_DIALOG(source), res, NULL);
+    if (file) {
+        char* path = g_file_get_path(file);
+        open_file(path, app);
+        g_free(path);
+        g_object_unref(file);
     }
+}
 
-    gtk_widget_destroy (dialog);
+static void
+open_cb (GSimpleAction *simple, GVariant      *parameter, gpointer user_data)
+{
+    GtkFileDialog* dialog = gtk_file_dialog_new();
+    gtk_file_dialog_open(dialog, NULL, NULL, on_file_open, user_data);
 }
 
 static void
@@ -270,29 +256,28 @@ run_cb (GSimpleAction *simple, GVariant      *parameter, gpointer user_data)
 }
 
 static GtkWidget* create_toolbar(struct App* app) {
-    GtkWidget* toolbar;
-    GtkToolItem* item;
+    GtkWidget* toolbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget* item;
 
-    toolbar = gtk_toolbar_new ();
+    item = gtk_button_new_from_icon_name("document-open");
+    gtk_actionable_set_action_name(GTK_ACTIONABLE(item), "lsystem.open");
+    gtk_widget_set_tooltip_text(item, "open");
+    gtk_button_set_has_frame(GTK_BUTTON(item), false);
+    gtk_box_append(GTK_BOX(toolbar), item);
 
-    item = gtk_tool_button_new(gtk_image_new_from_icon_name("document-open", GTK_ICON_SIZE_SMALL_TOOLBAR), "open");
-    gtk_tool_item_set_tooltip_text(item, "open");
-    gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.open");
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
+    item = gtk_button_new_from_icon_name("document-save");
+    gtk_actionable_set_action_name(GTK_ACTIONABLE(item), "lsystem.save");
+    gtk_widget_set_tooltip_text(item, "save");
+    gtk_button_set_has_frame(GTK_BUTTON(item), false);
+    gtk_box_append(GTK_BOX(toolbar), item);
 
-    item = gtk_tool_button_new(gtk_image_new_from_icon_name("document-save", GTK_ICON_SIZE_SMALL_TOOLBAR), "save");
-    gtk_tool_item_set_tooltip_text(item, "save");
-    gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.save");
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
+    gtk_box_append(GTK_BOX(toolbar), gtk_separator_new(GTK_ORIENTATION_VERTICAL));
 
-    item = gtk_separator_tool_item_new();
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
-
-    item = gtk_tool_button_new(gtk_image_new_from_icon_name("media-playback-start", GTK_ICON_SIZE_SMALL_TOOLBAR), "run");
-    gtk_tool_item_set_tooltip_text(item, "run");
-    gtk_actionable_set_action_name(GTK_ACTIONABLE (item), "lsystem.run");
-    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
-
+    item = gtk_button_new_from_icon_name("media-playback-start");
+    gtk_actionable_set_action_name(GTK_ACTIONABLE(item), "lsystem.run");
+    gtk_widget_set_tooltip_text(item, "run");
+    gtk_button_set_has_frame(GTK_BUTTON(item), false);
+    gtk_box_append(GTK_BOX(toolbar), item);
     return toolbar;
 }
 
@@ -333,8 +318,8 @@ static void on_app_activate(GApplication *a, struct App* app) {
     box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     right_box = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
 
-    scrolled = gtk_scrolled_window_new(NULL, NULL);
-    scrolled_log = gtk_scrolled_window_new(NULL, NULL);
+    scrolled = gtk_scrolled_window_new();
+    scrolled_log = gtk_scrolled_window_new();
     text_view = gtk_text_view_new();
     log_view = gtk_text_view_new();
     notebook = gtk_notebook_new();
@@ -347,19 +332,23 @@ static void on_app_activate(GApplication *a, struct App* app) {
     gtk_widget_set_can_focus(log_view, FALSE);
     gtk_text_view_set_monospace(GTK_TEXT_VIEW(log_view), TRUE);
 
-    gtk_container_add(GTK_CONTAINER(window), main_box);
-    gtk_container_add(GTK_CONTAINER(scrolled), text_view);
-    gtk_container_add(GTK_CONTAINER(scrolled_log), log_view);
+    gtk_window_set_child(GTK_WINDOW(window), main_box);
+    gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW(scrolled), text_view);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scrolled_log), log_view);
 
-    gtk_box_pack_start(GTK_BOX(main_box), create_toolbar(app), FALSE, TRUE, 0);
-    gtk_box_pack_end(GTK_BOX(main_box), box, TRUE, TRUE, 0);
+    gtk_box_append(GTK_BOX(main_box), create_toolbar(app));
+    gtk_box_append(GTK_BOX(main_box), box);
 
-    gtk_box_pack_start(GTK_BOX(box), notebook, TRUE, TRUE, 0);
-    gtk_box_pack_end(GTK_BOX(box), right_box, TRUE, TRUE, 0);
+    gtk_box_append(GTK_BOX(box), notebook);
+    gtk_box_append(GTK_BOX(box), right_box);
     gtk_box_set_homogeneous(GTK_BOX(box), TRUE);
 
-    gtk_paned_pack1(GTK_PANED(right_box), scrolled, TRUE, FALSE);
-    gtk_paned_pack2(GTK_PANED(right_box), scrolled_log, TRUE, FALSE);
+    gtk_paned_set_start_child(GTK_PANED(right_box), scrolled);
+    gtk_paned_set_resize_start_child(GTK_PANED(right_box), TRUE);
+    gtk_paned_set_shrink_start_child(GTK_PANED(right_box), TRUE);
+    gtk_paned_set_end_child(GTK_PANED(right_box), scrolled_log);
+    gtk_paned_set_resize_end_child(GTK_PANED(right_box), TRUE);
+    gtk_paned_set_shrink_end_child(GTK_PANED(right_box), FALSE);
 
     app->notebook = notebook;
     app->text_view = text_view;
@@ -368,7 +357,7 @@ static void on_app_activate(GApplication *a, struct App* app) {
 
     compile(app);
 
-    gtk_widget_show_all (window);
+    gtk_window_present(GTK_WINDOW(window));
 
     const char *accels[] = {"F5", NULL};
     gtk_application_set_accels_for_action(GTK_APPLICATION(a), "lsystem.run", accels);
